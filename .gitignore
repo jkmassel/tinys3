@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Swift
+.build
+.swiftpm
+
+# Local Development Helpers
+
+## JS SDK
+Tests/js-sample-tests/node_modules
+Tests/js-sample-tests/yarn-cache
+

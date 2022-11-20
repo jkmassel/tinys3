@@ -1,0 +1,7 @@
+GET
+/path/to/my/file.txt
+X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATNTB7DC3QVYVRJ2Y%2F20150830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20150830T183600Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&x-id=GetObject
+host:my-test-bucket.s3.us-east-1.amazonaws.com
+
+host
+UNSIGNED-PAYLOAD
