@@ -9,7 +9,6 @@ public struct S3HeadResponse {
     struct Constants {
         static let ContentLengthKey = "Content-Length"
         static let ETagKey = "Etag"
-        static let ContentTypeKey = "Content-Type"
         static let LastModifiedKey = "Last-Modified"
     }
 
@@ -24,7 +23,6 @@ public struct S3HeadResponse {
             let contentLengthString = response.value(forHTTPHeaderField: Constants.ContentLengthKey),
             let contentLength = Int(contentLengthString),
             let eTag = response.value(forHTTPHeaderField: Constants.ETagKey),
-            let contentType = response.value(forHTTPHeaderField: Constants.ContentTypeKey),
             let lastModifiedString = response.value(forHTTPHeaderField: Constants.LastModifiedKey),
             let lastModifiedAt = modificationDateParser.date(from: lastModifiedString)
         else {
@@ -34,7 +32,6 @@ public struct S3HeadResponse {
         return S3Object(
             key: self.key,
             size: contentLength,
-            contentType: contentType,
             eTag: eTag,
             lastModifiedAt: lastModifiedAt,
             storageClass: ""

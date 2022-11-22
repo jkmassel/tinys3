@@ -132,7 +132,6 @@ extension S3ListResponseParser: XMLParserDelegate {
         self.objects.append(S3Object(
             key: key,
             size: size,
-            contentType: "",
             eTag: eTag,
             lastModifiedAt: lastModified,
             storageClass: storageClass
