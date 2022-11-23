@@ -18,7 +18,7 @@ class DownloadOperation: NSObject {
     private lazy var task: URLSessionDownloadTask = session.downloadTask(with: self.request)
 
     private var downloadContinuation: CheckedContinuation<URL, Error>!
-    private var progressCallback: ProgressCallback? = nil
+    private var progressCallback: ProgressCallback?
     private var startDate: Date!
 
     init(url: URL, urlSessionConfiguration: URLSessionConfiguration = .default) {

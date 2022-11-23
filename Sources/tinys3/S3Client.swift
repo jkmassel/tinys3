@@ -64,6 +64,30 @@ public struct S3Client {
         return try await DownloadOperation(url: url).start(progressCallback: progressCallback)
     }
 
+    public func stream(
+        objectWithKey key: String,
+        inBucket bucket: String,
+        progressCallback: ProgressCallback? = nil,
+        headersCallback: StreamingDownloadOperation.HeadersCallback? = nil,
+        dataCallback: StreamingDownloadOperation.DataCallback? = nil
+    ) async throws -> URL {
+        let temporaryUrl = FileManager.default
+            .temporaryDirectory
+            .appendingPathComponent( UUID().uuidString)
+
+        let downloadOperation = StreamingDownloadOperation(
+            url: signedDownloadUrl(forKey: key, in: bucket, validFor: 60)
+        )
+
+        downloadOperation.headersCallback = headersCallback
+        downloadOperation.dataCallback = dataCallback
+        downloadOperation.progressCallback = progressCallback
+
+        try await downloadOperation.start(tempPath: temporaryUrl)
+
+        return temporaryUrl
+    }
+
     func perform(request: AWSRequest) async throws -> AWSResponse {
         let (data, response) = try await perform(request: request.urlRequest)
         return try AWSResponse(response: response, data: data)

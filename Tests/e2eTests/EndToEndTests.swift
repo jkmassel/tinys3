@@ -93,6 +93,29 @@ class S3DefaultTestPlan: XCTestCase {
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: result.path))
     }
+
+    func testThatObjectStreamingSendsDataToCallback() async throws {
+        var dataReceived = 0
+        _ = try await s3Client.stream(
+            objectWithKey: testPlan.fileToDownload,
+            inBucket: testPlan.bucket,
+            dataCallback: { dataReceived += $0.count }
+        )
+
+        XCTAssertEqual(dataReceived, testPlan.expectedSizeOfFileToDownload)
+    }
+
+    func testThatObjectStreamingStoresFileLocally() async throws {
+        let result = try await s3Client.stream(
+            objectWithKey: testPlan.fileToDownload,
+            inBucket: testPlan.bucket
+        )
+
+        XCTAssertEqual(
+            try FileManager.default.attributesOfItem(atPath: result.path)[.size] as? Int,
+            testPlan.expectedSizeOfFileToDownload
+        )
+    }
 }
 
 final class S3AcceleratedEndpointTests: S3DefaultTestPlan {

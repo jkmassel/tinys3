@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 struct HttpHeaders {
     private let headers: [String: String]
 
@@ -14,6 +18,14 @@ struct HttpHeaders {
 
     init(_ headers: [HeaderType: String] = [:]) {
         self.headers = headers.reduce(into: [String: String](), { $0[$1.key.rawValue] = $1.value })
+    }
+
+    init(from response: HTTPURLResponse) {
+        let headers = response.allHeaderFields.map {
+            ($0.key.description, response.value(forHTTPHeaderField: $0.key.description))
+        }.reduce(into: [String: String]()) { $0[$1.0] = $1.1 }
+
+        self.init(headers: headers)
     }
 
     private init(headers: [String: String]) {
