@@ -23,9 +23,9 @@ public class StreamingDownloadOperation: NSObject {
 
     private var continuation: CheckedContinuation<Void, Error>!
 
-    var progressCallback: ProgressCallback?
-    var dataCallback: DataCallback?
-    var headersCallback: HeadersCallback?
+    public var progressCallback: ProgressCallback?
+    public var dataCallback: DataCallback?
+    public var headersCallback: HeadersCallback?
 
     public init(url: URL) {
         self.request = URLRequest(url: url)
