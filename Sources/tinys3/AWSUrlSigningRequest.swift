@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 struct AWSUrlSigningRequest {
     let verb: HTTPMethod
     let bucket: String

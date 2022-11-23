@@ -12,8 +12,11 @@ lintfix:
 test:
 	swift test
 
+linux_build:
+	docker run --rm -v `pwd`:`pwd` -w `pwd` $(SWIFT_IMAGE) swift build -v
+
 linux_test:
-	docker run -it --rm -v `pwd`:`pwd` -w `pwd` $(SWIFT_IMAGE) swift test
+	docker run --rm -v `pwd`:`pwd` -w `pwd` $(SWIFT_IMAGE) swift test --filter tinys3Tests
 
 php_test:
 	docker run -it --rm -v $(shell pwd)/Tests/php-sample-tests:/app -w /app php:latest php test.php

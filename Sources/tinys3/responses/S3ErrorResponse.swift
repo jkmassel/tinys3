@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(FoundationXML)
+import FoundationXML
+#endif
+
 struct S3ErrorResponse: Error {
 
     let code: String
@@ -26,9 +30,9 @@ class S3ErrorResponseParser: NSObject {
 
     @discardableResult
     func parse() throws -> S3ErrorResponse {
-        self.parser.parse()
+        _ = self.parser.parse()
 
-        if let error = self.parser.parserError {
+        if let error = self.parser.parserError ?? self.error {
             throw error
         }
 
@@ -57,6 +61,7 @@ class S3ErrorResponseParser: NSObject {
     var requestId: String?
 
     var extra: [String: String] = [:]
+    var error: Error?
 
     var currentElement: ParserElement?
     var rootElementValidator = XMLDataValidator(expectedRootElementName: ParserElement.root.rawValue)
@@ -86,9 +91,16 @@ extension S3ErrorResponseParser: XMLParserDelegate {
         self.currentElement = ParserElement(rawValue: elementName)
 
         self.rootElementValidator.validate(elementName: elementName) { error in
-            parser.delegate?.parser?(parser, parseErrorOccurred: error)
-            parser.abortParsing()
+            self.parser(parser, parseErrorOccurred: error)
         }
+    }
+
+    func parser(
+        _ parser: XMLParser,
+        parseErrorOccurred error: Error
+    ) {
+        self.error = error
+        parser.abortParsing()
     }
 
     func parser(

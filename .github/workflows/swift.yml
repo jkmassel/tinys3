@@ -18,6 +18,17 @@ jobs:
     - name: Run tests
       run: swift test -v --filter tinys3
 
+  linuxbuild:
+    name: Build and Test (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: make linux_build
+    - name: Test
+      run: make linux_test
+
   lint:
       name: SwiftLint
       runs-on: ubuntu-latest

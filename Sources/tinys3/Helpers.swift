@@ -63,18 +63,28 @@ func parseISO8601String(_ string: String) -> Date? {
 }
 
 extension Progress {
+
+    var throughput: Int? {
+        self.userInfo[.throughputKey] as? Int
+    }
+
+    var estimatedTimeRemaining: TimeInterval? {
+        self.userInfo[.estimatedTimeRemainingKey] as? TimeInterval
+    }
+
     func estimateThroughput(fromTimeElapsed elapsedTime: TimeInterval) {
         let unitsPerSecond = self.completedUnitCount.quotientAndRemainder(dividingBy: Int64(elapsedTime)).quotient
-        self.throughput = Int(unitsPerSecond)
+        let throughput = Int(unitsPerSecond)
+        self.setUserInfoObject(throughput, forKey: .throughputKey)
 
-        guard let throughput = self.throughput, throughput > 0 else {
+        guard throughput > 0 else {
             return
         }
 
         let unitsRemaining = self.totalUnitCount - self.completedUnitCount
         let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
 
-        self.estimatedTimeRemaining = TimeInterval(secondsRemaining)
+        self.setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
     }
 }
 

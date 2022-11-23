@@ -1,45 +1,73 @@
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public typealias ProgressCallback = (Progress) -> Void
 
 class DownloadOperation: NSObject {
 
     private let request: URLRequest
-    private let session: URLSession
+    private let urlSessionConfiguration: URLSessionConfiguration
+    private lazy var session: URLSession = URLSession(
+        configuration: self.urlSessionConfiguration,
+        delegate: self,
+        delegateQueue: nil
+    )
+    private lazy var task: URLSessionDownloadTask = session.downloadTask(with: self.request)
 
-    init(url: URL, urlSession: URLSession = .shared) {
+    private var downloadContinuation: CheckedContinuation<URL, Error>!
+    private var progressCallback: ProgressCallback? = nil
+    private var startDate: Date!
+
+    init(url: URL, urlSessionConfiguration: URLSessionConfiguration = .default) {
+        self.urlSessionConfiguration = urlSessionConfiguration
         self.request = URLRequest(url: url)
-        self.session = urlSession
     }
 
     func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
-        let startDate = Date()
+        self.progressCallback = progressCallback
 
-        var observation: NSKeyValueObservation?
+        return try await withCheckedThrowingContinuation { continuation in
+            self.startDate = Date()
+            self.downloadContinuation = continuation
 
-        let url: URL = try await withCheckedThrowingContinuation { continuation in
-            let task = self.session.downloadTask(with: self.request) { url, _, error in
-                if let error = error {
-                    continuation.resume(with: .failure(error))
-                    return
-                }
-
-                if let url = url {
-                    continuation.resume(with: .success(url))
-                    return
-                }
-            }
-
-            observation = task.observe(\.countOfBytesReceived) { task, _ in
-                progressCallback?(task.progress(givenStartDate: startDate))
-            }
-
-            task.resume()
+            self.task.resume()
         }
+    }
+}
 
-        observation?.invalidate()
+extension DownloadOperation: URLSessionDelegate {
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        if let error {
+            self.downloadContinuation.resume(throwing: error)
+        }
+    }
+}
 
-        return url
+extension DownloadOperation: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error {
+            self.downloadContinuation.resume(throwing: error)
+        }
+    }
+}
+
+extension DownloadOperation: URLSessionDownloadDelegate {
+
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData bytesWritten: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
+        self.progressCallback?(downloadTask.progress(givenStartDate: self.startDate))
+    }
+
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        self.downloadContinuation.resume(returning: location)
     }
 }
 
@@ -51,7 +79,7 @@ extension URLSessionDownloadTask {
         let progress = Progress(totalUnitCount: self.countOfBytesExpectedToReceive)
         progress.completedUnitCount = self.countOfBytesReceived
         progress.kind = .file
-        progress.fileOperationKind = .downloading
+        progress.setUserInfoObject(Progress.FileOperationKind.downloading.rawValue, forKey: .fileOperationKindKey)
         progress.estimateThroughput(fromTimeElapsed: elapsedTime)
 
         return progress

@@ -31,9 +31,9 @@ class S3ListResponseParser: NSObject {
 
     @discardableResult
     func parse() throws -> S3ListResponse {
-        self.parser.parse()
+        _ = self.parser.parse()
 
-        if let error = self.parser.parserError {
+        if let error = self.parser.parserError ?? self.error {
             throw error
         }
 
@@ -74,6 +74,7 @@ class S3ListResponseParser: NSObject {
     var objects: [S3Object] = []
 
     var rootElementValidator = XMLDataValidator(expectedRootElementName: ParserElement.root.rawValue)
+    var error: Error?
 }
 
 extension S3ListResponseParser: XMLParserDelegate {
@@ -103,8 +104,7 @@ extension S3ListResponseParser: XMLParserDelegate {
         self.currentElement = ParserElement(rawValue: elementName)
 
         self.rootElementValidator.validate(elementName: elementName) { error in
-            parser.delegate?.parser?(parser, parseErrorOccurred: error)
-            parser.abortParsing()
+            self.parser(parser, parseErrorOccurred: error)
         }
     }
 
@@ -160,5 +160,10 @@ extension S3ListResponseParser: XMLParserDelegate {
         case .storageClass: self.storageClass = string
         default: break
         }
+    }
+
+    func parser(_ parser: XMLParser, parseErrorOccurred error: Error) {
+        self.error = error
+        parser.abortParsing()
     }
 }
