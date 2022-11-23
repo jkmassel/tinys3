@@ -64,6 +64,8 @@ func parseISO8601String(_ string: String) -> Date? {
 
 extension Progress {
 
+    #if(canImport(FoundationNetworking))
+    // These methods don't exist in the Linux version of Foundation, so we implement them ourselves
     var throughput: Int? {
         self.userInfo[.throughputKey] as? Int
     }
@@ -71,6 +73,7 @@ extension Progress {
     var estimatedTimeRemaining: TimeInterval? {
         self.userInfo[.estimatedTimeRemainingKey] as? TimeInterval
     }
+    #endif
 
     func estimateThroughput(fromTimeElapsed elapsedTime: TimeInterval) {
         let unitsPerSecond = self.completedUnitCount.quotientAndRemainder(dividingBy: Int64(elapsedTime)).quotient
