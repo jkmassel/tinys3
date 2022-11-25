@@ -67,7 +67,13 @@ extension DownloadOperation: URLSessionDownloadDelegate {
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        self.downloadContinuation.resume(returning: location)
+        do{
+            let destination = FileManager.default.temporaryFile
+            try FileManager.default.moveItem(at: location, to: destination)
+            self.downloadContinuation.resume(returning: destination)
+        } catch {
+            self.downloadContinuation.resume(throwing: error)
+        }
     }
 }
 

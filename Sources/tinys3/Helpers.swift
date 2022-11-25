@@ -103,6 +103,13 @@ extension Data {
     }
 }
 
+
+extension FileManager {
+    var temporaryFile: URL {
+        self.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    }
+}
+
 enum HTTPMethod: String {
     case get = "GET"
     case head = "HEAD"
