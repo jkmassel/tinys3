@@ -68,7 +68,11 @@ extension DownloadOperation: URLSessionDownloadDelegate {
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         do{
-            let destination = FileManager.default.temporaryFile
+            // It's easier to debug issues if the file name is recognizable, but in unlikely circumstances where
+            // the filename *isn't* available, we'll use a UUID
+            let filename = self.request.url?.lastPathComponent ?? UUID().uuidString
+            let destination = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
             try FileManager.default.moveItem(at: location, to: destination)
             self.downloadContinuation.resume(returning: destination)
         } catch {
