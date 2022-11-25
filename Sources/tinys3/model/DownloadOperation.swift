@@ -71,7 +71,13 @@ extension DownloadOperation: URLSessionDownloadDelegate {
             // It's easier to debug issues if the file name is recognizable, but in unlikely circumstances where
             // the filename *isn't* available, we'll use a UUID
             let filename = self.request.url?.lastPathComponent ?? UUID().uuidString
+
+            // It's possible for the download to fail after this method completes, but before our temp destination file
+            // is moved to its final location. In this case, a retry would cause an error unless the temp destination
+            // has a unique name – to handle that case, we'll append a unique suffix to the filenam
             let destination = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+                .appendingPathExtension(String(UUID().uuidString.prefix(6)))
+                .appendingPathExtension("tmp")
 
             try FileManager.default.moveItem(at: location, to: destination)
             self.downloadContinuation.resume(returning: destination)
