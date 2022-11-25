@@ -41,6 +41,13 @@ final class HelperTests: XCTestCase {
         XCTAssertEqual(0, progress.throughput)
     }
 
+    func testThatEstimatedThroughputIsZeroForZeroTimeElapsed() {
+        let progress = Progress(totalUnitCount: 100)
+        progress.completedUnitCount = 25
+        progress.estimateThroughput(fromTimeElapsed: 0)
+        XCTAssertEqual(0, progress.throughput)
+    }
+
     func testThatEstimatedTimeRemainingIsCorrect() {
         let progress = Progress(totalUnitCount: 100)
         progress.completedUnitCount = 50
@@ -48,11 +55,18 @@ final class HelperTests: XCTestCase {
         XCTAssertEqual(5, progress.estimatedTimeRemaining)
     }
 
-    func testThatEstimatedTimeRemainingIsNilForZeroProgress() {
+    func testThatEstimatedTimeRemainingIsInfinityForZeroProgress() {
         let progress = Progress(totalUnitCount: 100)
         progress.completedUnitCount = 0
         progress.estimateThroughput(fromTimeElapsed: 5)
-        XCTAssertNil(progress.estimatedTimeRemaining)
+        XCTAssertEqual(.infinity, progress.estimatedTimeRemaining)
+    }
+
+    func testThatEstimatedTimeRemainingIsInfinityForZeroTimeElapsed() {
+        let progress = Progress(totalUnitCount: 100)
+        progress.completedUnitCount = 10
+        progress.estimateThroughput(fromTimeElapsed: 0)
+        XCTAssertEqual(.infinity, progress.estimatedTimeRemaining)
     }
 
     // MARK: Data

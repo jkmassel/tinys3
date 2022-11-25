@@ -76,11 +76,18 @@ extension Progress {
     #endif
 
     func estimateThroughput(fromTimeElapsed elapsedTime: TimeInterval) {
+        guard Int64(elapsedTime) > 0 else {
+            self.setUserInfoObject(0, forKey: .throughputKey)
+            self.setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
+            return
+        }
+
         let unitsPerSecond = self.completedUnitCount.quotientAndRemainder(dividingBy: Int64(elapsedTime)).quotient
         let throughput = Int(unitsPerSecond)
         self.setUserInfoObject(throughput, forKey: .throughputKey)
 
         guard throughput > 0 else {
+            self.setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
             return
         }
 
