@@ -109,14 +109,16 @@ class AWSCredentialsFileParser {
         guard
             let profileName = self.profileName,
             let accessKeyId = self.accessKeyId,
-            let secretKey = self.secretKey,
-            let region = self.region
+            let secretKey = self.secretKey
         else {
             return
         }
 
-        let credentials = AWSCredentials(accessKeyId: accessKeyId, secretKey: secretKey, region: region)
-        self.profiles[profileName] = credentials
+        self.profiles[profileName] = AWSCredentials(
+            accessKeyId: accessKeyId,
+            secretKey: secretKey,
+            region: self.region ?? "us-east-1"
+        )
     }
 
     func resetParser() {

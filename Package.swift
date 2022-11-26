@@ -39,6 +39,7 @@ let package = Package(
             ],
             resources: [
                 .copy("resources/aws-credentials-file-multiple.txt"),
+                .copy("resources/aws-credentials-file-no-region.txt"),
                 .copy("resources/aws-credentials-file-single.txt"),
                 .copy("resources/default-list-request-authorization-header.txt"),
                 .copy("resources/default-list-request-canonical-request.txt"),

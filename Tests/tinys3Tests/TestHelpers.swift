@@ -49,6 +49,7 @@ struct R {
 
     struct AWSCredentialsFile {
         static var multiple: String { get throws { try R.string("aws-credentials-file-multiple") } }
+        static var withoutRegion: String { get throws { try R.string("aws-credentials-file-no-region")}}
         static var single: String { get throws { try R.string("aws-credentials-file-single") } }
     }
 }
