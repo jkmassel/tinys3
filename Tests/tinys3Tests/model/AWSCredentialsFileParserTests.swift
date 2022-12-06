@@ -18,16 +18,15 @@ final class AWSCredentialsFileParserTests: XCTestCase {
         )
     }
 
-    func testThatFileWithoutRegionContainsValidCredentails() {
-        XCTAssertEqual(
-            try AWSCredentialsFileParser(string: R.AWSCredentialsFile.withoutRegion).parse()["default"],
-            AWSCredentials.testDefault
+    func testThatFileWithoutRegionThrows() {
+        XCTAssertThrowsError(
+            try AWSCredentialsFileParser(string: R.AWSCredentialsFile.withoutRegion).parse()["default"]
         )
     }
 
     func testThatMultipleFileDiscardsInvalidSections() throws {
         let file = try R.AWSCredentialsFile.multiple
-        XCTAssertEqual(2, AWSCredentialsFileParser(string: file).parse().profiles.count)
+        XCTAssertEqual(2, try AWSCredentialsFileParser(string: file).parse().profiles.count)
     }
 
     func testThatMultipleFileContainsValidDefaultCredentials() throws {

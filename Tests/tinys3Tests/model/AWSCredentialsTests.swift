@@ -5,11 +5,11 @@ final class AWSCredentialsTests: XCTestCase {
 
     let credentials: AWSCredentials = .testDefault
 
-    func testThatCredentialsFromFileReturnsNilForMissingFile() throws {
+    func testThatCredentialsFromFileThrowsForMissingFile() throws {
         let invalidURL = FileManager.default
             .temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
 
-        XCTAssertNil(try AWSCredentials.from(url: invalidURL))
+        XCTAssertThrowsError(try AWSCredentials.from(url: invalidURL))
     }
 }

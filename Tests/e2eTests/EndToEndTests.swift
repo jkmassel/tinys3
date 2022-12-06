@@ -29,7 +29,7 @@ let minioTestPlan = TestPlan(
 
 let s3DefaultTestPlan = TestPlan(
     // swiftlint:disable force_try
-    credentials: try! .fromUserConfiguration()!,
+    credentials: try! .fromUserConfiguration(),
     endpoint: .default,
     bucket: "a8c-repo-mirrors",
     fileToDownload: "automattic/simplenote-ios/2022-11-03.git.tar",
@@ -38,7 +38,7 @@ let s3DefaultTestPlan = TestPlan(
 
 let s3AcceleratedTestPlan = TestPlan(
     // swiftlint:disable force_try
-    credentials: try! .fromUserConfiguration()!,
+    credentials: try! .fromUserConfiguration(),
     endpoint: .accelerated,
     bucket: "a8c-repo-mirrors",
     fileToDownload: "automattic/simplenote-ios/2022-11-03.git.tar",

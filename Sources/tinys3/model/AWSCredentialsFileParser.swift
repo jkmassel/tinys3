@@ -8,6 +8,20 @@ struct AWSCredentialsFile {
     }
 }
 
+enum AWSCredentialsError: Error, LocalizedError {
+    case fileDoesNotExist(url: URL)
+    case noProfileNamed(name: String)
+    case noRegionFound
+
+    var errorDescription: String? {
+        switch self {
+        case .fileDoesNotExist(let url): return "There is no credentials file at \(url.path)"
+        case .noProfileNamed(let name): return "No profile named `\(name)`"
+        case .noRegionFound: return "No region set in your credentials file – please specify the region"
+        }
+    }
+}
+
 class AWSCredentialsFileParser {
 
     enum CredentialFileKey: String {
@@ -28,6 +42,10 @@ class AWSCredentialsFileParser {
     var profiles = [String: AWSCredentials]()
 
     init(path: URL) throws {
+        guard FileManager.default.fileExists(atPath: path.path) else {
+            throw AWSCredentialsError.fileDoesNotExist(url: path)
+        }
+
         self.fileContents = try String(contentsOf: path)
     }
 
@@ -35,7 +53,7 @@ class AWSCredentialsFileParser {
         self.fileContents = string
     }
 
-    func parse() -> AWSCredentialsFile {
+    func parse() throws -> AWSCredentialsFile {
         let lines = self
             .fileContents
             .components(separatedBy: "\n")
@@ -47,7 +65,7 @@ class AWSCredentialsFileParser {
 
         for line in lines {
             if lineIsHeader(line) {
-                self.processCredentials()
+                try self.processCredentials()
                 self.profileName = convertLineToProfileName(line)
                 continue
             }
@@ -63,7 +81,7 @@ class AWSCredentialsFileParser {
             }
         }
 
-        self.processCredentials()
+        try self.processCredentials()
 
         return AWSCredentialsFile(profiles: self.profiles)
     }
@@ -100,7 +118,7 @@ class AWSCredentialsFileParser {
         return (key, value)
     }
 
-    func processCredentials() {
+    func processCredentials() throws {
 
         defer {
             self.resetParser()
@@ -114,10 +132,14 @@ class AWSCredentialsFileParser {
             return
         }
 
+        guard let region = self.region else {
+            throw AWSCredentialsError.noRegionFound
+        }
+
         self.profiles[profileName] = AWSCredentials(
             accessKeyId: accessKeyId,
             secretKey: secretKey,
-            region: self.region ?? "us-east-1"
+            region: region
         )
     }
 
