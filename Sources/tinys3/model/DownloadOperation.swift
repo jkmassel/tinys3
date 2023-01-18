@@ -17,12 +17,12 @@ public class DownloadOperation: NSObject {
     private var progressCallback: ProgressCallback?
     private var startDate: Date!
 
-    init(url: URL, urlSession: URLSession = .shared) {
+    public init(url: URL, urlSession: URLSession = .shared) {
         self.url = url
         self.urlSession = urlSession
     }
 
-    func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
+    public func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
         self.progressCallback = progressCallback
         return try await download(url: self.url)
     }

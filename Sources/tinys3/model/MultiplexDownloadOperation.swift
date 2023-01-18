@@ -6,13 +6,13 @@ public class MultiplexDownloadOperation: DownloadOperation {
 
     let progress: Progress
 
-    init(url: URL, contentLength: Int64) {
+    public init(url: URL, contentLength: Int64) {
         self.contentLength = contentLength
         self.progress = Progress(totalUnitCount: contentLength)
         super.init(url: url)
     }
 
-    override func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
+    public override func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
 
         // Swift's concurrency system only allows one concurrent task per machine core, so there's no
         // benefit to allocating more tasks than that. What's more – on the iOS simulator, only one cooperative
