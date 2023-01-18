@@ -16,7 +16,7 @@ public struct S3Client {
         self.urlSession = urlSession
     }
 
-    public func head(bucket: String, key: String) async throws -> S3HeadResponse {
+    public func head(bucket: String, key: String) async throws -> S3Object {
         let presignedRequest = AWSUrlSigningRequest(
             verb: .head,
             bucket: bucket,
@@ -29,7 +29,7 @@ public struct S3Client {
         let (data, response) = try await perform(request: presignedRequest.urlRequest)
         try AWSResponse(response: response, data: data).validate()
 
-        return S3HeadResponse.from(key: key, response: response)
+        return try S3Object.from(response, forKey: key)
     }
 
     public func list(bucket: String, prefix: String = "") async throws -> S3ListResponse {
@@ -60,8 +60,11 @@ public struct S3Client {
         inBucket bucket: String,
         progressCallback: ProgressCallback? = nil
     ) async throws -> URL {
-        let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 60)
-        return try await DownloadOperation(url: url).start(progressCallback: progressCallback)
+        let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 86400)
+        let contentLength = try await head(bucket: bucket, key: key).size
+
+        return try await MultiplexDownloadOperation(url: url, contentLength: contentLength)
+            .start(progressCallback: progressCallback)
     }
 
     public func stream(
