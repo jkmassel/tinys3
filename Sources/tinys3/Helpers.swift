@@ -160,6 +160,13 @@ extension [URLQueryItem] {
 
     static let empty: [URLQueryItem] = []
 }
+
+extension URL: Comparable {
+    public static func < (lhs: URL, rhs: URL) -> Bool {
+        lhs.path < rhs.path
+    }
+}
+
 extension URLRequest {
 
     var byteRange: HttpByteRange? {
@@ -188,4 +195,22 @@ extension URLRequest {
         self.value(forHTTPHeaderField: header.rawValue)
     }
 }
+
+extension AsyncSequence {
+    func collect() async rethrows -> [Element] {
+        try await reduce(into: [Element]()) { $0.append($1) }
+    }
+}
+
+extension String {
+    static func random(length: Int) -> String {
+        var rng = SystemRandomNumberGenerator()
+        return (0..<length).map { _ in String(format: "%02hhx", rng.next()) }.joined()
+    }
+}
+
+extension ProcessInfo {
+    var isSimulator: Bool {
+        ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil
+    }
 }
