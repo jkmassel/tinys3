@@ -160,3 +160,24 @@ extension [URLQueryItem] {
 
     static let empty: [URLQueryItem] = []
 }
+extension URLRequest {
+
+    var byteRange: HttpByteRange? {
+        get {
+            guard let value = self.value(forHTTPHeaderField: .range) else {
+                return nil
+            }
+
+            return HttpByteRange.from(httpHeaderValue: value)
+        }
+        set {
+            guard let newValue else {
+                self.setValue(nil, forHTTPHeaderField: .range)
+                return
+            }
+
+            self.setValue(newValue.representationForHttpHeader, forHTTPHeaderField: .range)
+        }
+    }
+}
+}
