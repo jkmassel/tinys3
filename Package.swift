@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "tinys3",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v12),
         .iOS(.v11),
         .tvOS(.v11),
         .watchOS(.v4),
