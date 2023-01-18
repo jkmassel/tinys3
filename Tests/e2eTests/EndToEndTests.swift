@@ -8,7 +8,7 @@ struct TestPlan {
     var bucket: String
 
     var fileToDownload: String
-    var expectedSizeOfFileToDownload: Int
+    var expectedSizeOfFileToDownload: Int64
 }
 
 let minioTestPlan = TestPlan(
@@ -62,8 +62,8 @@ class S3DefaultTestPlan: XCTestCase {
             bucket: testPlan.bucket,
             key: "/" + testPlan.fileToDownload
         )
-        XCTAssertNotNil(result.s3Object)
-        XCTAssertEqual(result.s3Object?.size, testPlan.expectedSizeOfFileToDownload)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result.size, testPlan.expectedSizeOfFileToDownload)
     }
 
     func testThatObjectCanBeReadWithoutLeadingSlash() async throws {
@@ -72,8 +72,8 @@ class S3DefaultTestPlan: XCTestCase {
             key: testPlan.fileToDownload
         )
 
-        XCTAssertNotNil(result.s3Object)
-        XCTAssertEqual(result.s3Object?.size, testPlan.expectedSizeOfFileToDownload)
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result.size, testPlan.expectedSizeOfFileToDownload)
     }
 
     func testThatObjectCanBeDownloadedWithLeadingSlash() async throws {
@@ -95,11 +95,11 @@ class S3DefaultTestPlan: XCTestCase {
     }
 
     func testThatObjectStreamingSendsDataToCallback() async throws {
-        var dataReceived = 0
+        var dataReceived: Int64 = 0
         _ = try await s3Client.stream(
             objectWithKey: testPlan.fileToDownload,
             inBucket: testPlan.bucket,
-            dataCallback: { dataReceived += $0.count }
+            dataCallback: { dataReceived += Int64($0.count) }
         )
 
         XCTAssertEqual(dataReceived, testPlan.expectedSizeOfFileToDownload)
@@ -112,7 +112,7 @@ class S3DefaultTestPlan: XCTestCase {
         )
 
         XCTAssertEqual(
-            try FileManager.default.attributesOfItem(atPath: result.path)[.size] as? Int,
+            try FileManager.default.attributesOfItem(atPath: result.path)[.size] as? Int64,
             testPlan.expectedSizeOfFileToDownload
         )
     }

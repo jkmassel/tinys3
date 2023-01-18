@@ -66,7 +66,7 @@ class S3ListResponseParser: NSObject {
     var key: String?
     var lastModified: Date?
     var eTag: String?
-    var size: Int?
+    var size: Int64?
     var storageClass: String?
 
     var currentElement: ParserElement?
@@ -156,7 +156,7 @@ extension S3ListResponseParser: XMLParserDelegate {
         case .key: self.key = string
         case .lastModified: self.lastModified = parseISO8601String(string)
         case .eTag: self.eTag = string
-        case .size: self.size = Int(string)
+        case .size: self.size = Int64(string)
         case .storageClass: self.storageClass = string
         default: break
         }
