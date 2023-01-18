@@ -61,6 +61,15 @@ public struct S3Client {
         progressCallback: ProgressCallback? = nil
     ) async throws -> URL {
         let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 86400)
+        return try await DownloadOperation(url: url).start(progressCallback: progressCallback)
+    }
+
+    public func multiplexDownload(
+        objectWithKey key: String,
+        inBucket bucket: String,
+        progressCallback: ProgressCallback? = nil
+    ) async throws -> URL {
+        let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 86400)
         let contentLength = try await head(bucket: bucket, key: key).size
 
         return try await MultiplexDownloadOperation(url: url, contentLength: contentLength)
