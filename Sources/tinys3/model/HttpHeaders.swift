@@ -8,12 +8,19 @@ struct HttpHeaders {
     private let headers: [String: String]
 
     enum HeaderType: String {
+        case acceptRanges           = "Accept-Ranges"
         case authorization          = "Authorization"
+        case contentLength          = "Content-Length"
+        case contentRange           = "Content-Range"
+        case contentType            = "Content-Type"
+        case eTag                   = "Etag"
         case host                   = "Host"
+        case lastModified           = "Last-Modified"
+        case range                  = "Range"
 
         // Custom Headers
-        case xAmzDate             = "x-amz-date"
-        case xAmxContentSha256    = "x-amz-content-sha256"
+        case xAmzDate               = "x-amz-date"
+        case xAmxContentSha256      = "x-amz-content-sha256"
     }
 
     init(_ headers: [HeaderType: String] = [:]) {
@@ -85,5 +92,11 @@ struct HttpHeaders {
 
     subscript(key: HeaderType) -> String? {
         self.headers.first { $0.key == key.rawValue }?.value
+    }
+}
+
+extension HTTPURLResponse {
+    func value(forHTTPHeaderField header: HttpHeaders.HeaderType) -> String? {
+        self.value(forHTTPHeaderField: header.rawValue)
     }
 }

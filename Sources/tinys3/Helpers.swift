@@ -179,5 +179,13 @@ extension URLRequest {
             self.setValue(newValue.representationForHttpHeader, forHTTPHeaderField: .range)
         }
     }
+
+    mutating func setValue(_ string: String?, forHTTPHeaderField header: HttpHeaders.HeaderType) {
+        self.setValue(string, forHTTPHeaderField: header.rawValue)
+    }
+
+    func value(forHTTPHeaderField header: HttpHeaders.HeaderType) -> String? {
+        self.value(forHTTPHeaderField: header.rawValue)
+    }
 }
 }
