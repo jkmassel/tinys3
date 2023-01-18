@@ -30,6 +30,7 @@ public class DownloadOperation: NSObject {
     func download(url: URL) async throws -> URL {
         try await withCheckedThrowingContinuation {
             let delegate = DownloadDelegate(taskId: self.taskId, continuation: $0)
+            delegate.progressDidChange = { self.progressCallback?(delegate.progress) }
 
             let task = self.urlSession.downloadTask(with: URLRequest(url: url))
             task.delegate = delegate
