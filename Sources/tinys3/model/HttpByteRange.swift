@@ -43,7 +43,7 @@ struct HttpByteRange: Equatable {
 
         for _ in 0..<numberOfGroups - 1 {
             let lowerBound = count + 1
-            let upperBound = lowerBound + chunkSize.quotient
+            let upperBound = lowerBound + chunkSize.quotient - 1
 
             pieces.append(lowerBound...upperBound)
 
