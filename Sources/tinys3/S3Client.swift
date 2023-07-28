@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -14,6 +15,13 @@ public struct S3Client {
         self.credentials = credentials
         self.endpoint = endpoint
         self.urlSession = urlSession
+
+        if #available(macOS 11.0, *) {
+            Logger(OSLog.default).info("Created S3 Client")
+            Logger(OSLog.default).info("S3 Client Access Key ID: \(credentials.accessKeyId, privacy: .public)")
+            Logger(OSLog.default).info("S3 Client Secret Key: \(credentials.secretKey, privacy: .private)")
+            Logger(OSLog.default).info("S3 Client Region: \(credentials.region, privacy: .public)")
+        }
     }
 
     public func head(bucket: String, key: String) async throws -> S3HeadResponse {
