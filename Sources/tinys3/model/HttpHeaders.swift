@@ -10,6 +10,7 @@ struct HttpHeaders {
     enum HeaderType: String {
         case authorization          = "Authorization"
         case host                   = "Host"
+        case range                  = "Range"
 
         // Custom Headers
         case xAmzDate             = "x-amz-date"
@@ -66,7 +67,7 @@ struct HttpHeaders {
                 let key = $0.key.lowercased()
                 let value = $0.value.trimmingCharacters(in: .whitespacesAndNewlines)
 
-                return "\(key):\(value)"
+                return key + ":" + value
             }
             .sorted()
             .joined(separator: "\n")

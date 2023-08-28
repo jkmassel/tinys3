@@ -41,18 +41,11 @@ let package = Package(
                 .copy("resources/aws-credentials-file-multiple.txt"),
                 .copy("resources/aws-credentials-file-no-region.txt"),
                 .copy("resources/aws-credentials-file-single.txt"),
-                .copy("resources/default-list-request-authorization-header.txt"),
-                .copy("resources/default-list-request-canonical-request.txt"),
-                .copy("resources/default-list-request-string-to-sign.txt"),
                 .copy("resources/EmptyXML.xml"),
                 .copy("resources/ErrorDataRedirect.xml"),
                 .copy("resources/ListBucketData.xml"),
                 .copy("resources/ListBucketDataEmpty.xml"),
                 .copy("resources/ListBucketDataInvalid.xml"),
-                .copy("resources/presigned-url-accelerated-endpoint-url.txt"),
-                .copy("resources/presigned-url-default-endpoint-canonical-request.txt"),
-                .copy("resources/presigned-url-default-endpoint-string-to-sign.txt"),
-                .copy("resources/presigned-url-default-endpoint-url.txt"),
             ]
         ),
         .testTarget(

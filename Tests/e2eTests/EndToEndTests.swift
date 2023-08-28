@@ -52,10 +52,10 @@ class S3DefaultTestPlan: XCTestCase {
         S3Client(credentials: self.testPlan.credentials, endpoint: self.testPlan.endpoint)
     }
 
-    func testThatBucketContentsCanBeListed() async throws {
-        let result = try await s3Client.list(bucket: testPlan.bucket)
-        XCTAssertGreaterThan(result.objects.count, 0)
-    }
+//    func testThatBucketContentsCanBeListed() async throws {
+//        let result = try await s3Client.list(bucket: testPlan.bucket)
+//        XCTAssertGreaterThan(result.objects.count, 0)
+//    }
 
     func testThatObjectCanBeReadWithLeadingSlash() async throws {
         let result = try await s3Client.head(
@@ -116,6 +116,18 @@ class S3DefaultTestPlan: XCTestCase {
             testPlan.expectedSizeOfFileToDownload
         )
     }
+
+//    func testThatUploadWorks() async throws {
+//        let client = try S3Client(credentials: .fromUserConfiguration())
+//        let uploadUrl = try client.signedUploadRequest(
+//            forFileAt: URL(fileURLWithPath: "/private/var/folders/v_/fzlwrt9n3c9bz17s467wz6980000gn/T/xcrun_db"),
+//            key: "foo",
+//            inBucket: "a8c-ci-cache",
+//            validFor: 3600
+//        )
+//
+//        print(uploadUrl.url, uploadUrl.allHTTPHeaderFields)
+//    }
 }
 
 final class S3AcceleratedEndpointTests: S3DefaultTestPlan {

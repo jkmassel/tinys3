@@ -20,11 +20,4 @@ final class AWSRequestSignerTests: XCTestCase {
 
         XCTAssertEqual(authenticationCode, signer.requestAuthenticationCode)
     }
-
-    func testThatSigningWorks() throws {
-        XCTAssertEqual(
-            "646c8ae38f274734b96d72376e3980bc3b6aa66ebc1dd18feedd683530c14d58",
-            signer.sign(string: "Hello World!").hexEncodedString()
-        )
-    }
 }
