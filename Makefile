@@ -10,7 +10,7 @@ lintfix:
 	docker run -it --rm -v `pwd`:`pwd` -w `pwd` $(SWIFTLINT_IMAGE) swiftlint --autocorrect
 
 test:
-	swift test
+	swift test --filter tinys3Tests
 
 linux_build:
 	docker run --rm -v `pwd`:`pwd` -w `pwd` $(SWIFT_IMAGE) swift build -v

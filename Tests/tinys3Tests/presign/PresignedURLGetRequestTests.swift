@@ -64,13 +64,10 @@ AWS4-HMAC-SHA256
         XCTAssertEqual("aeeed9bbccd4d02ee5c0109b86d86835f995330da4c265957d157751f604d404", request.signature)
     }
 
-    @available(macOS 13.0, *)
     func testThatPresignedURLIsCorrect() throws {
-        let correctURL = URL(string: """
+        let correctURL = """
 https://examplebucket.s3.amazonaws.com/test.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20130524T000000Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=aeeed9bbccd4d02ee5c0109b86d86835f995330da4c265957d157751f604d404
-""")
-        XCTAssertEqual(correctURL?.host, request.url.host)
-        XCTAssertEqual(correctURL?.path(percentEncoded: true), request.url.path(percentEncoded: true))
-        XCTAssertEqual(correctURL?.query(percentEncoded: true), request.url.query)
+"""
+        XCTAssertEqual(correctURL, request.url.absoluteString)
     }
 }
