@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import Crypto
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -25,16 +26,16 @@ public struct S3Client {
     }
 
     public func head(bucket: String, key: String) async throws -> S3HeadResponse {
-        let presignedRequest = AWSUrlSigningRequest(
-            verb: .head,
+        let url = AWSPresignedDownloadURL(
             bucket: bucket,
             key: key,
             ttl: 60,
-            credentials: self.credentials,
-            endpoint: self.endpoint
-        )
+            credentials: self.credentials
+        ).url
 
-        let (data, response) = try await perform(request: presignedRequest.urlRequest)
+        let request = URLRequest(url: url)
+
+        let (data, response) = try await perform(request: request)
         try AWSResponse(response: response, data: data).validate()
 
         return S3HeadResponse.from(key: key, response: response)
@@ -42,10 +43,9 @@ public struct S3Client {
 
     public func list(bucket: String, prefix: String = "") async throws -> S3ListResponse {
         let request = AWSRequest.listRequest(
-            bucketName: bucket,
+            bucket: bucket,
             prefix: prefix,
-            credentials: self.credentials,
-            endpoint: self.endpoint
+            credentials: self.credentials
         )
 
         let response = try await perform(request: request).validate()
@@ -53,14 +53,12 @@ public struct S3Client {
     }
 
     public func signedDownloadUrl(forKey key: String, in bucket: String, validFor timeInterval: TimeInterval) -> URL {
-        AWSUrlSigningRequest(
-            verb: .get,
+        AWSPresignedDownloadURL(
             bucket: bucket,
             key: key,
             ttl: timeInterval,
-            credentials: self.credentials,
-            endpoint: self.endpoint
-        ).presignedUrl
+            credentials: self.credentials
+        ).url
     }
 
     public func download(
@@ -68,8 +66,8 @@ public struct S3Client {
         inBucket bucket: String,
         progressCallback: ProgressCallback? = nil
     ) async throws -> URL {
-        let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 60)
-        return try await DownloadOperation(url: url).start(progressCallback: progressCallback)
+        let request = AWSRequest.downloadRequest(bucket: bucket, key: key, credentials: self.credentials).urlRequest
+        return try await DownloadOperation(request: request).start(progressCallback: progressCallback)
     }
 
     public func stream(
@@ -94,6 +92,17 @@ public struct S3Client {
         try await downloadOperation.start(tempPath: temporaryUrl)
 
         return temporaryUrl
+    }
+
+    @available(macOS 12.0, *)
+    public func upload(
+        objectAtPath path: URL,
+        toBucket bucket: String,
+        key: String,
+        progressCallback: ProgressCallback? = nil
+    ) async throws {
+        let request = try AWSRequest.uploadRequest(bucket: bucket, key: key, path: path, credentials: self.credentials)
+        try await UploadOperation(request: request, path: path).start(progressCallback: progressCallback)
     }
 
     func perform(request: AWSRequest) async throws -> AWSResponse {

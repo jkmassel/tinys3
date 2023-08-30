@@ -11,11 +11,11 @@ final class HelperTests: XCTestCase {
     }
 
     func testThatTimestampIsValidFormat() throws {
-        XCTAssertEqual("20150830T183600Z", formattedTimestamp(from: .testDefault))
+        XCTAssertEqual("20130524T000000Z", formattedTimestamp(from: .testDefault))
     }
 
     func testThatDatestampIsValidFormat() throws {
-        XCTAssertEqual("20150830", formattedDatestamp(from: .testDefault))
+        XCTAssertEqual("20130524", formattedDatestamp(from: .testDefault))
     }
 
     func testThatParseLastModifiedDateWorks() throws {
@@ -73,6 +73,11 @@ final class HelperTests: XCTestCase {
     func testThatDataHexEncodedStringReturnsValidResults() throws {
         XCTAssertEqual("f09f988c", Data("😌".utf8).hexEncodedString())
         XCTAssertEqual("F09F988C", Data("😌".utf8).hexEncodedString(options: .upperCase))
+    }
+
+    // MARK: Hashing
+    func testThatHashingEmptyStringProducesValidResults() throws {
+        XCTAssertEqual("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", sha256Hash(string: ""))
     }
 
     // MARK: URLQueryItem

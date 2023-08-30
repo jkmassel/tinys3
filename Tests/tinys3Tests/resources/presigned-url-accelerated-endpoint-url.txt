@@ -1,1 +1,0 @@
-https://test-bucket.s3-accelerate.amazonaws.com/test-key?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIATNTB7DC3QVYVRJ2Y%2F20150830%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20150830T183600Z&X-Amz-Expires=3600&X-Amz-Signature=b250b40e1bf22c826f8ac34ee864b33d6e85cb73b20965cce5cbd954bb7d497a&X-Amz-SignedHeaders=host&x-id=GetObject

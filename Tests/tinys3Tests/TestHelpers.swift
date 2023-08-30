@@ -10,15 +10,15 @@ let testPrefix = "my/path/"
 extension AWSCredentials {
     /// Valid, but deleted credentials – created only for use with this project, then destroyed immediately.
     static let testDefault = AWSCredentials(
-        accessKeyId: "AKIATNTB7DC3QVYVRJ2Y",
-        secretKey: "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",
+        accessKeyId: "AKIAIOSFODNN7EXAMPLE",
+        secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
         region: "us-east-1"
     )
 }
 
 extension Date {
     static var testDefault: Date {
-        Date(timeIntervalSince1970: 1440959760)
+        Date(timeIntervalSince1970: 1369353600)
     }
 }
 

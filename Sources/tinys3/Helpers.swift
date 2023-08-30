@@ -23,14 +23,25 @@ struct XMLDataValidator {
     }
 }
 
+@available(macOS 10.15.4, *)
+func sha256Hash(fileAt url: URL) throws -> String {
+    var hasher = SHA256()
+
+    let fileHandle = try FileHandle(forReadingFrom: url)
+    var _data: Data? = try fileHandle.read(upToCount: 4096)
+
+    while let data = _data {
+        hasher.update(data: data)
+        _data = try fileHandle.read(upToCount: 4096)
+    }
+
+    return hasher.finalize().lowercaseHexValue
+}
+
 func sha256Hash(data: Data) -> String {
     var hasher = SHA256()
     hasher.update(data: data)
-
-    return hasher
-        .finalize()
-        .reduce(into: Data()) { $0.append($1) }
-        .hexEncodedString()
+    return hasher.finalize().lowercaseHexValue
 }
 
 func sha256Hash(string: String) -> String {
@@ -111,6 +122,11 @@ extension Data {
     }
 }
 
+extension Digest {
+    var lowercaseHexValue: String {
+        self.compactMap { String(format: "%02hhx", $0) }.joined()
+    }
+}
 
 extension FileManager {
     var temporaryFile: URL {
@@ -135,14 +151,14 @@ extension URLQueryItem {
         var characterSet = CharacterSet.urlQueryAllowed
         characterSet.remove("/")
 
-        return value?.addingPercentEncoding(withAllowedCharacters: characterSet)
+        return value?.addingPercentEncoding(withAllowedCharacters: characterSet)?.replacingOccurrences(of: "/", with: "%2F")
     }
 }
 
 extension [URLQueryItem] {
 
     var asEscapedQueryString: String {
-        self.sorted().map { "\($0.name)=\($0.escapedValue ?? "")" }.joined(separator: "&")
+        self.map { "\($0.name)=\($0.escapedValue ?? "")" }.joined(separator: "&")
     }
 
     var escaped: [URLQueryItem] {

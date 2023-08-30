@@ -17,10 +17,14 @@ let package = Package(
             name: "tinys3",
             targets: ["tinys3"]
         ),
+        .executable(name: "cli", targets: [
+            "cli",
+        ])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.2.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -29,6 +33,13 @@ let package = Package(
             name: "tinys3",
             dependencies: [
                 .product(name: "Crypto", package: "swift-crypto"),
+            ]
+        ),
+        .executableTarget(
+            name: "cli",
+            dependencies: [
+                "tinys3",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .testTarget(
@@ -41,18 +52,11 @@ let package = Package(
                 .copy("resources/aws-credentials-file-multiple.txt"),
                 .copy("resources/aws-credentials-file-no-region.txt"),
                 .copy("resources/aws-credentials-file-single.txt"),
-                .copy("resources/default-list-request-authorization-header.txt"),
-                .copy("resources/default-list-request-canonical-request.txt"),
-                .copy("resources/default-list-request-string-to-sign.txt"),
                 .copy("resources/EmptyXML.xml"),
                 .copy("resources/ErrorDataRedirect.xml"),
                 .copy("resources/ListBucketData.xml"),
                 .copy("resources/ListBucketDataEmpty.xml"),
                 .copy("resources/ListBucketDataInvalid.xml"),
-                .copy("resources/presigned-url-accelerated-endpoint-url.txt"),
-                .copy("resources/presigned-url-default-endpoint-canonical-request.txt"),
-                .copy("resources/presigned-url-default-endpoint-string-to-sign.txt"),
-                .copy("resources/presigned-url-default-endpoint-url.txt"),
             ]
         ),
         .testTarget(

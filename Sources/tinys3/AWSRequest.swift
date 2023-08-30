@@ -5,67 +5,160 @@ import FoundationNetworking
 #endif
 
 struct AWSRequest {
-    let verb: HTTPMethod
-    let bucket: String
-    let path: String?
+
+    enum StorageClass: String {
+        case reducedRedundancy = "REDUCED_REDUNDANCY"
+    }
+
+    let request: URLRequest
     let credentials: AWSCredentials
-    let queryItems: [URLQueryItem]
-    let headers: HttpHeaders
     let date: Date
 
-    private let endpoint: S3Endpoint
-
-    // MARK: Derived Properties
-    private let contentHash: String
     private let scope: AWSScope
     private let signer: AWSRequestSigner
+    private let queryItems: [URLQueryItem]
+    private let bucket: String
+    private let path: String
 
     init(
         verb: HTTPMethod,
         bucket: String,
-        path: String,
+        path: String = "/",
+        query: [URLQueryItem] = [],
+        range: Range<Int>? = nil,
+        storageClass: StorageClass? = nil,
+        contentSignature: String = sha256Hash(string: ""),
         credentials: AWSCredentials,
-        body: Data = Data(),
-        queryItems: [URLQueryItem] = [],
-        headers: HttpHeaders = HttpHeaders(),
         date: Date = Date(),
-        endpoint: S3Endpoint = .default
+        extraHeaders: [String:String] = [:]
     ) {
-        self.verb = verb
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = bucket + ".s3.amazonaws.com"
+        components.path = path.hasPrefix("/") ? path : "/" + path
+        components.queryItems = query
+
+        var urlRequest = URLRequest(url: components.url!)
+        urlRequest.httpMethod = verb.rawValue
+
+        if let storageClass {
+            urlRequest.setValue(storageClass.rawValue, forHTTPHeaderField: "x-amz-storage-class")
+        }
+
+        urlRequest.setValue(contentSignature, forHTTPHeaderField: "x-amz-content-sha256")
+        urlRequest.setValue(formattedTimestamp(from: date), forHTTPHeaderField: "x-amz-date")
+
+        for (key, value) in extraHeaders {
+            urlRequest.setValue(value, forHTTPHeaderField: key)
+        }
+
+        if let range {
+            let lb = range.lowerBound
+            let ub = range.upperBound
+
+            urlRequest.setValue("bytes=\(lb)-\(ub)", forHTTPHeaderField: "Range") // TODO: This is borked
+        }
+
+        self.request = urlRequest
+        self.credentials = credentials
+        self.date = date
+
+        self.queryItems = query
         self.bucket = bucket
         self.path = path
-
-        self.contentHash = sha256Hash(data: body)
         self.scope = AWSScope(region: credentials.region, date: date)
         self.signer = AWSRequestSigner(credentials: credentials, requestDate: date)
+    }
 
-        self.credentials = credentials
-        self.endpoint = endpoint
-        self.queryItems = queryItems
+    public var headers: HttpHeaders {
+        HttpHeaders().adding(request.allHTTPHeaderFields!)
+    }
 
-        let headerCopy = headers
-        self.headers = headerCopy.adding([
-            .host: self.endpoint.hostname(forBucket: bucket, inRegion: credentials.region),
-            .xAmxContentSha256: self.contentHash,
-            .xAmzDate: formattedTimestamp(from: date)
-        ])
-        self.date = date
+    static func downloadRequest(
+        bucket: String,
+        key: String,
+        range: Range<Int>? = nil,
+        credentials: AWSCredentials,
+        date: Date = Date()
+    ) -> AWSRequest {
+        AWSRequest(verb: .get, bucket: bucket, path: key, range: range, credentials: credentials, date: date)
+    }
+
+    @available(macOS 10.15.4, *)
+    static func uploadRequest(
+        bucket: String,
+        key: String,
+        path: URL,
+        credentials: AWSCredentials
+    ) throws -> URLRequest {
+        let hash = try sha256Hash(fileAt: path)
+
+        debugPrint(hash)
+
+        return AWSRequest(
+            verb: .put,
+            bucket: bucket,
+            path: key,
+            contentSignature: hash,
+            credentials: credentials
+        ).urlRequest
+    }
+}
+
+// MARK: Canonical Requeat
+extension AWSRequest {
+    var canonicalUri: String {
+        request.url!.path
+    }
+
+    var escapedCanonicalUri: String {
+        var allowedCharacters = CharacterSet.urlPathAllowed
+        allowedCharacters.remove("$")
+
+        return canonicalUri.addingPercentEncoding(withAllowedCharacters: allowedCharacters)!
+    }
+
+    var canonicalQueryString: String {
+        queryItems.asEscapedQueryString
+    }
+
+    var canonicalHeaders: HttpHeaders {
+        HttpHeaders([
+            .host: request.url!.host!,
+        ]).adding(request.allHTTPHeaderFields ?? [:])
+    }
+
+    var canonicalHeaderString: String {
+        canonicalHeaders
+            .toHttpHeaderFields
+            .sorted { $0.key < $1.key }
+            .map { $0.key.lowercased() + ":" + $0.value.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .joined(separator: "\n")
+    }
+
+    var signedHeaderString: String {
+        canonicalHeaders
+            .toHttpHeaderFields
+            .sorted { $0.key < $1.key }
+            .map{ $0.key.lowercased() }
+            .joined(separator: ";")
     }
 
     var canonicalRequest: String {
         [
-            self.verb.rawValue,
-            self.path,
-            self.queryItems.asEscapedQueryString,
-            self.headers.canonicalized,
-            "", // Yep, there's supposed to be an extra blank line here
-            self.headers.signed,
-            self.contentHash
-        ]
-            .compactMap { $0 }
-            .joined(separator: "\n")
+            request.httpMethod,
+            escapedCanonicalUri,
+            canonicalQueryString,
+            canonicalHeaderString,
+            "",
+            signedHeaderString,
+            request.allHTTPHeaderFields?["x-amz-content-sha256"]
+        ].compactMap{ $0 }.joined(separator: "\n")
     }
+}
 
+// MARK: String to Sign
+extension AWSRequest {
     var stringToSign: String {
         [
             "AWS4-HMAC-SHA256",
@@ -74,65 +167,34 @@ struct AWSRequest {
             sha256Hash(string: canonicalRequest)
         ].joined(separator: "\n")
     }
+}
+
+// MARK: Signature
+extension AWSRequest {
+    var signature: String {
+        signer.sign(string: stringToSign)
+    }
 
     var authorizationHeaderValue: String {
         "AWS4-HMAC-SHA256 " + [
-            "Credential=\(self.credentials.accessKeyId)/\(self.scope.description)",
-            "SignedHeaders=\(self.headers.signed)",
+            "Credential=\(credentials.accessKeyId)/\(scope.description)",
+            "SignedHeaders=\(signedHeaderString)",
             "Signature=\(signer.sign(string: stringToSign))"
         ].joined(separator: ",")
     }
 
-    var url: URL {
-        var components = URLComponents()
-        components.scheme = self.endpoint.scheme.rawValue
-        components.host = self.endpoint.hostname(forBucket: self.bucket, inRegion: self.credentials.region)
-
-        if !self.queryItems.isEmpty {
-            components.queryItems = self.queryItems
-        }
-
-        if let path = self.path {
-            components.path = path.starts(with: "/") ? path : "/" + path
-        }
-
-        if let port = self.endpoint.port {
-            components.port = port
-        }
-
-        return components.url!
-    }
-
     var urlRequest: URLRequest {
-        var urlRequest = URLRequest(url: self.url)
-        urlRequest.httpMethod = self.verb.rawValue
-        urlRequest.allHTTPHeaderFields = self.headers
-            .adding(.authorization, value: self.authorizationHeaderValue)
-            .toHttpHeaderFields
-
-        return urlRequest
+        var request = self.request
+        request.addValue(authorizationHeaderValue, forHTTPHeaderField: "Authorization")
+        return request
     }
 }
 
+// MARK: Convenience Initializers
 extension AWSRequest {
-    static func listRequest(
-        bucketName: String,
-        prefix: String = "",
-        credentials: AWSCredentials,
-        date: Date = Date(),
-        endpoint: S3Endpoint = .default
-    ) -> AWSRequest {
-
-        AWSRequest(
-            verb: .get,
-            bucket: bucketName,
-            path: endpoint.usesBucketSubdomains ? "/" : "/\(bucketName)/",
-            credentials: credentials,
-            queryItems: [
-                URLQueryItem(name: "prefix", value: prefix)
-            ],
-            date: date,
-            endpoint: endpoint
-        )
+    static func listRequest(bucket: String, `prefix`: String = "", credentials: AWSCredentials) -> AWSRequest {
+        AWSRequest(verb: .get, bucket: bucket, query: [
+            URLQueryItem(name: "prefix", value: prefix)
+        ], credentials: credentials)
     }
 }
