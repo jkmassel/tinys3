@@ -23,7 +23,7 @@ struct XMLDataValidator {
     }
 }
 
-@available(macOS 12, *)
+@available(macOS 10.15.4, *)
 func sha256Hash(fileAt url: URL) throws -> String {
     var hasher = SHA256()
 
@@ -151,14 +151,14 @@ extension URLQueryItem {
         var characterSet = CharacterSet.urlQueryAllowed
         characterSet.remove("/")
 
-        return value?.addingPercentEncoding(withAllowedCharacters: characterSet)
+        return value?.addingPercentEncoding(withAllowedCharacters: characterSet)?.replacingOccurrences(of: "/", with: "%2F")
     }
 }
 
 extension [URLQueryItem] {
 
     var asEscapedQueryString: String {
-        self.sorted().map { "\($0.name)=\($0.escapedValue ?? "")" }.joined(separator: "&")
+        self.map { "\($0.name)=\($0.escapedValue ?? "")" }.joined(separator: "&")
     }
 
     var escaped: [URLQueryItem] {

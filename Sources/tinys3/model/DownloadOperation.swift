@@ -26,6 +26,11 @@ class DownloadOperation: NSObject {
         self.request = URLRequest(url: url)
     }
 
+    init(request: URLRequest, urlSessionConfiguration: URLSessionConfiguration = .default) {
+        self.urlSessionConfiguration = urlSessionConfiguration
+        self.request = request
+    }
+
     func start(progressCallback: ProgressCallback? = nil) async throws -> URL {
         self.progressCallback = progressCallback
 
@@ -63,7 +68,7 @@ extension DownloadOperation: URLSessionDownloadDelegate {
         totalBytesWritten: Int64,
         totalBytesExpectedToWrite: Int64
     ) {
-        self.progressCallback?(downloadTask.progress(givenStartDate: self.startDate))
+        self.progressCallback?(downloadTask.downloadProgress(givenStartDate: self.startDate))
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
@@ -84,20 +89,5 @@ extension DownloadOperation: URLSessionDownloadDelegate {
         } catch {
             self.downloadContinuation.resume(throwing: error)
         }
-    }
-}
-
-extension URLSessionDownloadTask {
-    func progress(givenStartDate startDate: Date) -> Progress {
-        let now = Date()
-        let elapsedTime = now.timeIntervalSince(startDate)
-
-        let progress = Progress(totalUnitCount: self.countOfBytesExpectedToReceive)
-        progress.completedUnitCount = self.countOfBytesReceived
-        progress.kind = .file
-        progress.setUserInfoObject(Progress.FileOperationKind.downloading.rawValue, forKey: .fileOperationKindKey)
-        progress.estimateThroughput(fromTimeElapsed: elapsedTime)
-
-        return progress
     }
 }

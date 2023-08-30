@@ -35,7 +35,7 @@ struct AWSRequest {
         var components = URLComponents()
         components.scheme = "https"
         components.host = bucket + ".s3.amazonaws.com"
-        components.path = path
+        components.path = path.hasPrefix("/") ? path : "/" + path
         components.queryItems = query
 
         var urlRequest = URLRequest(url: components.url!)
@@ -82,6 +82,26 @@ struct AWSRequest {
         date: Date = Date()
     ) -> AWSRequest {
         AWSRequest(verb: .get, bucket: bucket, path: key, range: range, credentials: credentials, date: date)
+    }
+
+    @available(macOS 10.15.4, *)
+    static func uploadRequest(
+        bucket: String,
+        key: String,
+        path: URL,
+        credentials: AWSCredentials
+    ) throws -> URLRequest {
+        let hash = try sha256Hash(fileAt: path)
+
+        debugPrint(hash)
+
+        return AWSRequest(
+            verb: .put,
+            bucket: bucket,
+            path: key,
+            contentSignature: hash,
+            credentials: credentials
+        ).urlRequest
     }
 }
 
@@ -167,16 +187,6 @@ extension AWSRequest {
         var request = self.request
         request.addValue(authorizationHeaderValue, forHTTPHeaderField: "Authorization")
         return request
-    }
-
-    var presignedUrl: URL {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "s3.amazonaws.com"
-        components.path = "/" + bucket + path
-        components.queryItems = []
-
-        return components.url!
     }
 }
 

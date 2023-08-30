@@ -5,7 +5,6 @@ import FoundationNetworking
 #endif
 
 struct AWSPresignedDownloadURL {
-
     let bucket: String
     let key: String
     let ttl: TimeInterval
@@ -41,7 +40,7 @@ struct AWSPresignedDownloadURL {
     }
 
     var canonicalUri: String {
-        self.key
+        self.key.hasPrefix("/") ? self.key : "/" + self.key
     }
 
     var queryItems: [URLQueryItem] {
@@ -55,7 +54,7 @@ struct AWSPresignedDownloadURL {
     }
 
     var canonicalQueryString: String {
-        queryItems.asEscapedQueryString
+        queryItems.sorted().asEscapedQueryString
     }
 
     var canonicalHeaderString: String {
@@ -95,8 +94,8 @@ struct AWSPresignedDownloadURL {
         var components = URLComponents()
         components.scheme = "https"
         components.host = hostname
-        components.path = canonicalUri
-        components.query = (queryItems.sorted() + [URLQueryItem(name: "X-Amz-Signature", value: signature)]).asEscapedQueryString
+        components.path = canonicalUri.hasPrefix("/") ? canonicalUri : "/" + canonicalUri
+        components.percentEncodedQuery = (queryItems.sorted() + [URLQueryItem(name: "X-Amz-Signature", value: signature)]).asEscapedQueryString
 
         return components.url!
     }

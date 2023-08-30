@@ -66,8 +66,8 @@ public struct S3Client {
         inBucket bucket: String,
         progressCallback: ProgressCallback? = nil
     ) async throws -> URL {
-        let url = signedDownloadUrl(forKey: key, in: bucket, validFor: 60)
-        return try await DownloadOperation(url: url).start(progressCallback: progressCallback)
+        let request = AWSRequest.downloadRequest(bucket: bucket, key: key, credentials: self.credentials).urlRequest
+        return try await DownloadOperation(request: request).start(progressCallback: progressCallback)
     }
 
     public func stream(
@@ -94,35 +94,16 @@ public struct S3Client {
         return temporaryUrl
     }
 
-//    @available(macOS 12.0, *)
-//    public func signedUploadRequest(
-//        forFileAt path: URL,
-//        key: String,
-//        inBucket bucket: String,
-//        validFor timeInterval: TimeInterval
-//    ) throws -> URLRequest {
-////        AWSUrlSigningRequest(
-////            verb: .put,
-////            bucket: bucket,
-////            key: key,
-////            contentSignature: try sha256Hash(fileAt: path),
-////            ttl: timeInterval,
-////            credentials: self.credentials,
-////            endpoint: self.endpoint
-////        ).urlRequest
-//    }
-
-//    @available(macOS 12.0, *)
-//    public func upload(
-//        objectAtPath path: URL,
-//        toBucket bucket: String,
-//        key: String
-//    ) async throws {
-//        let request = try signedUploadRequest(forFileAt: path, key: key, inBucket: bucket, validFor: 3600)
-//        let result = try await self.urlSession.upload(for: request, fromFile: path)
-//
-//        debugPrint(result)
-//    }
+    @available(macOS 12.0, *)
+    public func upload(
+        objectAtPath path: URL,
+        toBucket bucket: String,
+        key: String,
+        progressCallback: ProgressCallback? = nil
+    ) async throws {
+        let request = try AWSRequest.uploadRequest(bucket: bucket, key: key, path: path, credentials: self.credentials)
+        try await UploadOperation(request: request, path: path).start(progressCallback: progressCallback)
+    }
 
     func perform(request: AWSRequest) async throws -> AWSResponse {
         let (data, response) = try await perform(request: request.urlRequest)
