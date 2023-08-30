@@ -55,45 +55,16 @@ extension UploadOperation: URLSessionTaskDelegate {
         }
     }
 
-    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didSendBodyData bytesSent: Int64,
+        totalBytesSent: Int64,
+        totalBytesExpectedToSend: Int64
+    ) {
         self.progressCallback?(task.uploadProgress(givenStartDate: self.startDate))
     }
 }
-
-//extension UploadOperation:  {
-//
-//    func urlSession(
-//        _ session: URLSession,
-//        downloadTask: URLSessionDownloadTask,
-//        didWriteData bytesWritten: Int64,
-//        totalBytesWritten: Int64,
-//        totalBytesExpectedToWrite: Int64
-//    ) {
-//        self.progressCallback?(downloadTask.progress(givenStartDate: self.startDate))
-//    }
-//
-//    func urlsession
-//
-//    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-//        do{
-//            // It's easier to debug issues if the file name is recognizable, but in unlikely circumstances where
-//            // the filename *isn't* available, we'll use a UUID
-//            let filename = self.request.url?.lastPathComponent ?? UUID().uuidString
-//
-//            // It's possible for the download to fail after this method completes, but before our temp destination file
-//            // is moved to its final location. In this case, a retry would cause an error unless the temp destination
-//            // has a unique name – to handle that case, we'll append a unique suffix to the filenam
-//            let destination = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-//                .appendingPathExtension(String(UUID().uuidString.prefix(6)))
-//                .appendingPathExtension("tmp")
-//
-//            try FileManager.default.moveItem(at: location, to: destination)
-//            self.uploadContinuation.resume()
-//        } catch {
-//            self.uploadContinuation.resume(throwing: error)
-//        }
-//    }
-//}
 
 extension URLSessionTask {
 
@@ -109,7 +80,6 @@ extension URLSessionTask {
 
         return progress
     }
-
 
     func uploadProgress(givenStartDate startDate: Date) -> Progress {
         let now = Date()

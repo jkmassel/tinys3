@@ -1,7 +1,8 @@
 import XCTest
 @testable import tinys3
 
-final class PresignedPutRequestTests: XCTestCase, PresignedRequestTest {
+// swiftlint:disable line_length
+final class PresignedPutRequestTests: XCTestCase, RequestTest {
     var request = AWSRequest(
         verb: .put,
         bucket: "examplebucket",

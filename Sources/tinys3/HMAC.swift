@@ -20,4 +20,3 @@ struct HMAC256 {
         sign(string: string, key: Data(key.utf8))
     }
 }
-

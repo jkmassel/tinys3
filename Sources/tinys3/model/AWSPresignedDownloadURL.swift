@@ -95,7 +95,9 @@ struct AWSPresignedDownloadURL {
         components.scheme = "https"
         components.host = hostname
         components.path = canonicalUri.hasPrefix("/") ? canonicalUri : "/" + canonicalUri
-        components.percentEncodedQuery = (queryItems.sorted() + [URLQueryItem(name: "X-Amz-Signature", value: signature)]).asEscapedQueryString
+        components.percentEncodedQuery = (queryItems.sorted() + [
+            URLQueryItem(name: "X-Amz-Signature", value: signature)
+        ]).asEscapedQueryString
 
         return components.url!
     }

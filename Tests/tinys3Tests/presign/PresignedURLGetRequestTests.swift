@@ -1,6 +1,7 @@
 import XCTest
 @testable import tinys3
 
+// swiftlint:disable line_length
 final class PresignedURLGetRequestTests: XCTestCase {
 
     let request = AWSPresignedDownloadURL(

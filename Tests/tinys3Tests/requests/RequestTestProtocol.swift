@@ -1,7 +1,7 @@
 import Foundation
 @testable import tinys3
 
-protocol PresignedRequestTest {
+protocol RequestTest {
     var request: AWSRequest { get }
 
     func testThatCanonicalUriIsCorrect() throws
@@ -14,4 +14,3 @@ protocol PresignedRequestTest {
     func testThatAuthorizationHeaderValueIsCorrect() throws
     func testThatPresignedURLIsCorrect() throws
 }
-

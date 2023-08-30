@@ -1,14 +1,12 @@
 import XCTest
 @testable import tinys3
 
-final class PresignedListBucketRequestTests: XCTestCase, PresignedRequestTest {
-    let request = AWSRequest(
+// swiftlint:disable line_length
+final class PresignedGetBucketLifecycleTests: XCTestCase, RequestTest {
+    var request = AWSRequest(
         verb: .get,
         bucket: "examplebucket",
-        query: [
-            URLQueryItem(name: "max-keys", value: "2"),
-            URLQueryItem(name: "prefix", value: "J"),
-        ],
+        query: [ URLQueryItem(name: "lifecycle", value: nil) ],
         credentials: .testDefault,
         date: .testDefault
     )
@@ -18,7 +16,7 @@ final class PresignedListBucketRequestTests: XCTestCase, PresignedRequestTest {
     }
 
     func testThatCanonicalQueryStringIsCorrect() throws {
-        XCTAssertEqual("max-keys=2&prefix=J", request.canonicalQueryString)
+        XCTAssertEqual("lifecycle=", request.canonicalQueryString)
     }
 
     func testThatCanonicalHeaderStringIsCorrect() throws {
@@ -37,7 +35,7 @@ x-amz-date:20130524T000000Z
         XCTAssertEqual("""
 GET
 /
-max-keys=2&prefix=J
+lifecycle=
 host:examplebucket.s3.amazonaws.com
 x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 x-amz-date:20130524T000000Z
@@ -52,21 +50,21 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
 AWS4-HMAC-SHA256
 20130524T000000Z
 20130524/us-east-1/s3/aws4_request
-df57d21db20da04d7fa30298dd4488ba3a2b47ca3a489c74750e0f1e7df1b9b7
+9766c798316ff2757b517bc739a67f6213b4ab36dd5da2f94eaebf79c77395ca
 """, request.stringToSign)
     }
 
     func testThatSignatureIsValid() throws {
-        XCTAssertEqual("34b48302e7b5fa45bde8084f4b7868a86f0a534bc59db6670ed5711ef69dc6f7", request.signature)
+        XCTAssertEqual("fea454ca298b7da1c68078a5d1bdbfbbe0d65c699e0f91ac7a200a0136783543", request.signature)
     }
 
     func testThatAuthorizationHeaderValueIsCorrect() throws {
         XCTAssertEqual("""
-AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=host;x-amz-content-sha256;x-amz-date,Signature=34b48302e7b5fa45bde8084f4b7868a86f0a534bc59db6670ed5711ef69dc6f7
+AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=host;x-amz-content-sha256;x-amz-date,Signature=fea454ca298b7da1c68078a5d1bdbfbbe0d65c699e0f91ac7a200a0136783543
 """, request.authorizationHeaderValue)
     }
 
     func testThatPresignedURLIsCorrect() throws {
-
+//        XCTAssertEqual("", request.presignedUrl.absoluteString)
     }
 }
