@@ -88,7 +88,7 @@ extension URLSessionTask {
         let progress = Progress(totalUnitCount: self.countOfBytesExpectedToSend)
         progress.completedUnitCount = self.countOfBytesSent
         progress.kind = .file
-        progress.setUserInfoObject(Progress.FileOperationKind.uploading.rawValue, forKey: .fileOperationKindKey)
+//        progress.setUserInfoObject(Progress.FileOperationKind.uploading.rawValue, forKey: .fileOperationKindKey)
         progress.estimateThroughput(fromTimeElapsed: elapsedTime)
 
         return progress

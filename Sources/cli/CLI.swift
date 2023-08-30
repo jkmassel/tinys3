@@ -131,17 +131,18 @@ struct CLI: AsyncParsableCommand {
             }
 
             let pwd = FileManager.default.currentDirectoryPath
-            return URL(filePath: pwd).appendingPathComponent(sourceURL.lastPathComponent)
+            return URL(fileURLWithPath: pwd).appendingPathComponent(sourceURL.lastPathComponent)
         }
 
-        let destination = URL(filePath: self.destination)
+        let destination = URL(fileURLWithPath: self.destination)
         if try FileManager.default.directoryExists(at: destination) {
             let url = URL(string: self.source)!
             return destination.appendingPathComponent(url.lastPathComponent)
         }
 
         if !FileManager.default.fileExists(atPath: self.destination) {
-            return URL(filePath: FileManager.default.currentDirectoryPath).appendingPathComponent(self.destination)
+            return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent(self.destination)
         }
 
         throw Errors.unableToResolveDestination

@@ -1,6 +1,5 @@
 import Foundation
 import Crypto
-import OSLog
 
 struct InvalidDataError: Error {}
 
@@ -23,16 +22,15 @@ struct XMLDataValidator {
     }
 }
 
-@available(macOS 10.15.4, *)
 func sha256Hash(fileAt url: URL) throws -> String {
     var hasher = SHA256()
 
     let fileHandle = try FileHandle(forReadingFrom: url)
-    var tmpData: Data? = try fileHandle.read(upToCount: 4096)
+    var data = fileHandle.readData(ofLength: 4096)
 
-    while let data = tmpData {
+    while data.count == 4096 {
         hasher.update(data: data)
-        tmpData = try fileHandle.read(upToCount: 4096)
+        data = fileHandle.readData(ofLength: 4096)
     }
 
     return hasher.finalize().lowercaseHexValue

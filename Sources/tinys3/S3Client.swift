@@ -1,9 +1,12 @@
 import Foundation
-import OSLog
 import Crypto
 
 #if canImport(FoundationNetworking)
 import FoundationNetworking
+#endif
+
+#if canImport(OSLog)
+import OSLog
 #endif
 
 public struct S3Client {
@@ -17,12 +20,14 @@ public struct S3Client {
         self.endpoint = endpoint
         self.urlSession = urlSession
 
+        #if canImport(OSLog)
         if #available(macOS 11.0, *) {
             Logger(OSLog.default).info("Created S3 Client")
             Logger(OSLog.default).info("S3 Client Access Key ID: \(credentials.accessKeyId, privacy: .public)")
             Logger(OSLog.default).info("S3 Client Secret Key: \(credentials.secretKey, privacy: .private)")
             Logger(OSLog.default).info("S3 Client Region: \(credentials.region, privacy: .public)")
         }
+        #endif
     }
 
     public func head(bucket: String, key: String) async throws -> S3HeadResponse {
