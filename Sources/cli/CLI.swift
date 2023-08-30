@@ -29,10 +29,10 @@ struct CLI: AsyncParsableCommand {
 
     mutating func run() async throws {
         switch operation {
-            case .download: try await download()
-            case .upload: try await upload()
-            case .list: try await list()
-            case .presign: try presign()
+        case .download: try await download()
+        case .upload: try await upload()
+        case .list: try await list()
+        case .presign: try presign()
         }
     }
 
@@ -130,7 +130,8 @@ struct CLI: AsyncParsableCommand {
                 throw Errors.invalidSource
             }
 
-            return URL(filePath: FileManager.default.currentDirectoryPath).appendingPathComponent(sourceURL.lastPathComponent)
+            let pwd = FileManager.default.currentDirectoryPath
+            return URL(filePath: pwd).appendingPathComponent(sourceURL.lastPathComponent)
         }
 
         let destination = URL(filePath: self.destination)

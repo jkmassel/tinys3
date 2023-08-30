@@ -72,7 +72,7 @@ extension DownloadOperation: URLSessionDownloadDelegate {
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        do{
+        do {
             // It's easier to debug issues if the file name is recognizable, but in unlikely circumstances where
             // the filename *isn't* available, we'll use a UUID
             let filename = self.request.url?.lastPathComponent ?? UUID().uuidString

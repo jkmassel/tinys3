@@ -28,11 +28,11 @@ func sha256Hash(fileAt url: URL) throws -> String {
     var hasher = SHA256()
 
     let fileHandle = try FileHandle(forReadingFrom: url)
-    var _data: Data? = try fileHandle.read(upToCount: 4096)
+    var tmpData: Data? = try fileHandle.read(upToCount: 4096)
 
-    while let data = _data {
+    while let data = tmpData {
         hasher.update(data: data)
-        _data = try fileHandle.read(upToCount: 4096)
+        tmpData = try fileHandle.read(upToCount: 4096)
     }
 
     return hasher.finalize().lowercaseHexValue
@@ -151,7 +151,9 @@ extension URLQueryItem {
         var characterSet = CharacterSet.urlQueryAllowed
         characterSet.remove("/")
 
-        return value?.addingPercentEncoding(withAllowedCharacters: characterSet)?.replacingOccurrences(of: "/", with: "%2F")
+        return value?
+            .addingPercentEncoding(withAllowedCharacters: characterSet)?
+            .replacingOccurrences(of: "/", with: "%2F")
     }
 }
 

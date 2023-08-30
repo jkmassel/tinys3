@@ -30,7 +30,7 @@ struct AWSRequest {
         contentSignature: String = sha256Hash(string: ""),
         credentials: AWSCredentials,
         date: Date = Date(),
-        extraHeaders: [String:String] = [:]
+        extraHeaders: [String: String] = [:]
     ) {
         var components = URLComponents()
         components.scheme = "https"
@@ -53,10 +53,10 @@ struct AWSRequest {
         }
 
         if let range {
-            let lb = range.lowerBound
-            let ub = range.upperBound
+            let lowerBound = range.lowerBound
+            let upperBound = range.upperBound
 
-            urlRequest.setValue("bytes=\(lb)-\(ub)", forHTTPHeaderField: "Range") // TODO: This is borked
+            urlRequest.setValue("bytes=\(lowerBound)-\(upperBound)", forHTTPHeaderField: "Range")
         }
 
         self.request = urlRequest
@@ -124,7 +124,7 @@ extension AWSRequest {
 
     var canonicalHeaders: HttpHeaders {
         HttpHeaders([
-            .host: request.url!.host!,
+            .host: request.url!.host!
         ]).adding(request.allHTTPHeaderFields ?? [:])
     }
 
@@ -140,7 +140,7 @@ extension AWSRequest {
         canonicalHeaders
             .toHttpHeaderFields
             .sorted { $0.key < $1.key }
-            .map{ $0.key.lowercased() }
+            .map { $0.key.lowercased() }
             .joined(separator: ";")
     }
 
@@ -153,7 +153,7 @@ extension AWSRequest {
             "",
             signedHeaderString,
             request.allHTTPHeaderFields?["x-amz-content-sha256"]
-        ].compactMap{ $0 }.joined(separator: "\n")
+        ].compactMap { $0 }.joined(separator: "\n")
     }
 }
 
