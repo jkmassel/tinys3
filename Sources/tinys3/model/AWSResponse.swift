@@ -51,11 +51,21 @@ struct AWSResponse {
 
         if data.isEmpty {
             throw AWSResponseError.httpError(code: self.response.statusCode)
+        } else {
+            print(String(bytes: data, encoding: .utf8))
         }
 
         let errorResponse = try S3ErrorResponse.from(response: self)
         let error = AWSResponseError.awsError(code: self.response.statusCode, error: errorResponse)
         throw error
+    }
+
+    var allHeaderFields: [String: String] {
+        self.response.allHeaderFields as! [String: String]
+    }
+
+    func value(forHTTPHeaderField name: String) -> String? {
+        allHeaderFields[name]?.trimmingCharacters(in: .init(charactersIn: "\""))
     }
 
     var wasSuccessful: Bool {

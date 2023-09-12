@@ -93,8 +93,6 @@ struct AWSRequest {
     ) throws -> URLRequest {
         let hash = try sha256Hash(fileAt: path)
 
-        debugPrint(hash)
-
         return AWSRequest(
             verb: .put,
             bucket: bucket,
@@ -102,6 +100,62 @@ struct AWSRequest {
             contentSignature: hash,
             credentials: credentials
         ).urlRequest
+    }
+
+    static func createMultipartUploadRequest(
+        bucket: String,
+        key: String,
+        path: URL,
+        credentials: AWSCredentials
+    ) -> AWSRequest {
+        AWSRequest(
+            verb: .post,
+            bucket: bucket,
+            path: key,
+            query: [URLQueryItem(name: "uploads", value: nil)],
+            credentials: credentials
+        )
+    }
+
+    @available(macOS 10.15.4, *)
+    static func uploadPartRequest(
+        bucket: String,
+        key: String,
+        part: MultipartUploadOperation.AWSPartData,
+        credentials: AWSCredentials
+    ) throws -> AWSRequest {
+        AWSRequest(
+            verb: .put,
+            bucket: bucket,
+            path: key,
+            query: [
+                URLQueryItem(name: "partNumber", value: String(part.number)),
+                URLQueryItem(name: "uploadId", value: part.uploadId)
+            ],
+            contentSignature: part.sha256Hash,
+            credentials: credentials
+        )
+    }
+
+    @available(macOS 10.15.4, *)
+    static func completeMultipartUploadRequest(
+        bucket: String,
+        key: String,
+        uploadId: String,
+        hash: String,
+        parts: [MultipartUploadOperation.AWSUploadedPart],
+        credentials: AWSCredentials,
+        date: Date = Date()
+    ) -> AWSRequest {
+        AWSRequest(
+            verb: .post,
+            bucket: bucket,
+            path: key,
+            query: [URLQueryItem(name: "uploadId", value: uploadId)],
+            contentSignature: hash,
+            credentials: credentials,
+            date: date
+        )
     }
 }
 

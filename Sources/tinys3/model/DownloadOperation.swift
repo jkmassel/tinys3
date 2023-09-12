@@ -5,6 +5,7 @@ import FoundationNetworking
 #endif
 
 public typealias ProgressCallback = (Progress) -> Void
+let NullProgressCallback: ProgressCallback = { _ in }
 
 class DownloadOperation: NSObject {
 
@@ -89,5 +90,20 @@ extension DownloadOperation: URLSessionDownloadDelegate {
         } catch {
             self.downloadContinuation.resume(throwing: error)
         }
+    }
+}
+
+extension URLSessionTask {
+    func downloadProgress(givenStartDate startDate: Date) -> Progress {
+        let now = Date()
+        let elapsedTime = now.timeIntervalSince(startDate)
+
+        let progress = Progress(totalUnitCount: self.countOfBytesExpectedToReceive)
+        progress.completedUnitCount = self.countOfBytesReceived
+        progress.kind = .file
+        progress.setUserInfoObject(Progress.FileOperationKind.downloading.rawValue, forKey: .fileOperationKindKey)
+        progress.estimateThroughput(fromTimeElapsed: elapsedTime)
+
+        return progress
     }
 }

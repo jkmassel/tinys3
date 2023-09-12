@@ -106,8 +106,8 @@ public struct S3Client {
         key: String,
         progressCallback: ProgressCallback? = nil
     ) async throws {
-        let request = try AWSRequest.uploadRequest(bucket: bucket, key: key, path: path, credentials: self.credentials)
-        try await UploadOperation(request: request, path: path).start(progressCallback: progressCallback)
+        let operation = try MultipartUploadOperation(bucket: bucket, key: key, path: path, credentials: self.credentials)
+        try await operation.start(progress: progressCallback ?? NullProgressCallback)
     }
 
     func perform(request: AWSRequest) async throws -> AWSResponse {
