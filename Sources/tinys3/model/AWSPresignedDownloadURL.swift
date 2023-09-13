@@ -40,7 +40,7 @@ struct AWSPresignedDownloadURL {
     }
 
     var hostname: String {
-        bucket + ".s3." + endpoint.domain
+        endpoint.hostname(forBucket: bucket, inRegion: credentials.region)
     }
 
     var canonicalUri: String {

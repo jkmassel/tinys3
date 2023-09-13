@@ -19,7 +19,7 @@ public struct S3Endpoint: Equatable {
         port: nil,
         usesBucketSubdomains: true,
         isAWS: true,
-        needsRegion: true
+        needsRegion: false
     )
     public static let accelerated = S3Endpoint(
         domain: "s3-accelerate.amazonaws.com",
