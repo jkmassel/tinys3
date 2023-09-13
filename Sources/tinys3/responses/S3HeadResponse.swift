@@ -6,24 +6,18 @@ import FoundationNetworking
 
 public struct S3HeadResponse {
 
-    struct Constants {
-        static let ContentLengthKey = "Content-Length"
-        static let ETagKey = "Etag"
-        static let LastModifiedKey = "Last-Modified"
-    }
-
     let key: String
-    let response: HTTPURLResponse
+    let response: AWSResponse
 
     public var s3Object: S3Object? {
         let modificationDateParser = DateFormatter()
         modificationDateParser.dateFormat = "E, dd MMM yyyy HH:mm:ss zzz"
 
         guard
-            let contentLengthString = response.value(forHTTPHeaderField: Constants.ContentLengthKey),
+            let contentLengthString = response.value(forHTTPHeaderField: .contentLength),
             let contentLength = Int(contentLengthString),
-            let eTag = response.value(forHTTPHeaderField: Constants.ETagKey),
-            let lastModifiedString = response.value(forHTTPHeaderField: Constants.LastModifiedKey),
+            let eTag = response.value(forHTTPHeaderField: .eTag)?.replacingOccurrences(of: "\"", with: ""),
+            let lastModifiedString = response.value(forHTTPHeaderField: .lastModified),
             let lastModifiedAt = modificationDateParser.date(from: lastModifiedString)
         else {
             return nil
@@ -39,10 +33,6 @@ public struct S3HeadResponse {
     }
 
     static func from(key: String, response: AWSResponse) -> S3HeadResponse {
-        .init(key: key, response: response.response)
-    }
-
-    static func from(key: String, response: HTTPURLResponse) -> S3HeadResponse {
         .init(key: key, response: response)
     }
 }

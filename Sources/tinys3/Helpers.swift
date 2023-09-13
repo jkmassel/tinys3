@@ -46,12 +46,6 @@ func sha256Hash(string: String) -> String {
     sha256Hash(data: Data(string.utf8))
 }
 
-func md5Hash(data: Data) -> String {
-    var hasher = Insecure.MD5()
-    hasher.update(data: data)
-    return hasher.finalize().lowercaseHexValue
-}
-
 func formattedTimestamp(from date: Date = Date()) -> String {
     let formatter = DateFormatter()
     formatter.timeZone = TimeZone(abbreviation: "UTC")
@@ -91,6 +85,10 @@ extension Progress {
     }
     #endif
 
+    func estimateThroughput(fromStartDate date: Date) {
+        estimateThroughput(fromTimeElapsed: Date().timeIntervalSince(date))
+    }
+
     func estimateThroughput(fromTimeElapsed elapsedTime: TimeInterval) {
         guard Int64(elapsedTime) > 0 else {
             self.setUserInfoObject(0, forKey: .throughputKey)
@@ -111,6 +109,10 @@ extension Progress {
         let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
 
         self.setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
+    }
+
+    static func from(_ int: Int) -> Progress {
+        return Progress(totalUnitCount: Int64(int))
     }
 }
 

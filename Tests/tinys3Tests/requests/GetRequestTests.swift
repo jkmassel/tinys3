@@ -66,8 +66,4 @@ final class PresignedGetRequestTests: XCTestCase, RequestTest {
     AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=host;range;x-amz-content-sha256;x-amz-date,Signature=f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41
     """, request.authorizationHeaderValue)
     }
-
-    func testThatPresignedURLIsCorrect() throws {
-
-    }
 }

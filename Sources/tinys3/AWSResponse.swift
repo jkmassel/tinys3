@@ -51,8 +51,6 @@ struct AWSResponse {
 
         if data.isEmpty {
             throw AWSResponseError.httpError(code: self.response.statusCode)
-        } else {
-            print(String(bytes: data, encoding: .utf8))
         }
 
         let errorResponse = try S3ErrorResponse.from(response: self)
@@ -60,12 +58,12 @@ struct AWSResponse {
         throw error
     }
 
-    var allHeaderFields: [String: String] {
-        self.response.allHeaderFields as! [String: String]
+    var headers: HttpHeaders {
+        HttpHeaders(from: self.response)
     }
 
-    func value(forHTTPHeaderField name: String) -> String? {
-        allHeaderFields[name]?.trimmingCharacters(in: .init(charactersIn: "\""))
+    func value(forHTTPHeaderField key: HttpHeaders.HeaderType) -> String? {
+        headers[key]
     }
 
     var wasSuccessful: Bool {

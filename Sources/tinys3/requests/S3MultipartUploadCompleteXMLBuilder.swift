@@ -1,14 +1,22 @@
 import Foundation
 
-@available(macOS 10.15.4, *)
-struct CompleteMultipartUploadRequestBodyBuilder {
+#if canImport(FoundationXML)
+import FoundationXML
+#endif
 
-    struct EncodingOptions: OptionSet {
-        let rawValue: Int
+protocol XMLDocumentBuilder {
+    func build(options: XMLEncodingOptions) -> String
+    func build(options: XMLEncodingOptions) -> Data
+}
 
-        static let prettyPrinted    = EncodingOptions(rawValue: 1 << 0)
-        static let escaped          = EncodingOptions(rawValue: 1 << 1)
-    }
+struct XMLEncodingOptions: OptionSet {
+    let rawValue: Int
+
+    static let prettyPrinted    = XMLEncodingOptions(rawValue: 1 << 0)
+    static let encoded          = XMLEncodingOptions(rawValue: 1 << 1)
+}
+
+struct S3MultipartUploadCompleteXMLBuilder: XMLDocumentBuilder {
 
     private let document: XMLDocument
     private let header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -43,11 +51,11 @@ struct CompleteMultipartUploadRequestBodyBuilder {
         return self
     }
 
-    func build(options: EncodingOptions = []) -> String {
+    func build(options: XMLEncodingOptions = []) -> String {
         let xmlOptions = options.contains(.prettyPrinted) ? XMLElement.Options.nodePrettyPrint : []
         let originalString = document.xmlString(options: xmlOptions).trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard options.contains(.escaped) else {
+        guard options.contains(.encoded) else {
             return originalString.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
@@ -56,9 +64,8 @@ struct CompleteMultipartUploadRequestBodyBuilder {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func build(options: EncodingOptions = []) -> Data {
+    func build(options: XMLEncodingOptions = []) -> Data {
         let xmlOptions = options.contains(.prettyPrinted) ? XMLElement.Options.nodePrettyPrint : []
-        return Data(header.utf8) + document.xmlData(options: xmlOptions)
+        return document.xmlData(options: xmlOptions)
     }
 }
-

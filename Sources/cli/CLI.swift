@@ -11,6 +11,7 @@ struct CLI: AsyncParsableCommand {
         case download
         case list
         case presign
+        case head
     }
 
     enum Errors: Error {
@@ -33,6 +34,7 @@ struct CLI: AsyncParsableCommand {
         case .upload: try await upload()
         case .list: try await list()
         case .presign: try presign()
+        case .head: try await head()
         }
     }
 
@@ -120,6 +122,29 @@ struct CLI: AsyncParsableCommand {
         print(client.signedDownloadUrl(forKey: key, in: bucket, validFor: 3600).absoluteString)
     }
 
+    func head() async throws {
+        let client = try S3Client(credentials: .fromUserConfiguration())
+
+        guard
+            let url = URL(string: self.source),
+            let bucket = url.host
+        else {
+            throw Errors.invalidSource
+        }
+
+        let key = String(url.path.trimmingPrefix("/"))
+
+        guard let object = try await client.head(bucket: bucket, key: key) else {
+            print("Object not found")
+            return
+        }
+
+        print("Key:\t\t\(object.key)")
+        print("Size:\t\t\(format(fileSize: object.size))")
+        print("eTag:\t\t\(object.eTag)")
+        print("Last Modified:\t\(format(date: object.lastModifiedAt))")
+    }
+
     func updateProgress(_ progress: Progress) {
         debugPrint(format(percentage: progress.fractionCompleted))
     }
@@ -156,6 +181,17 @@ struct CLI: AsyncParsableCommand {
         formatter.maximumFractionDigits = 2
 
         return formatter.string(for: percentage)!
+    }
+
+    func format(fileSize: Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+
+        return formatter.string(fromByteCount: Int64(fileSize))
+    }
+
+    func format(date: Date) -> String {
+        DateFormatter.localizedString(from: date, dateStyle: .long, timeStyle: .long)
     }
 }
 

@@ -8,10 +8,7 @@ final class CompleteMultipartUpload: XCTestCase, RequestTest {
         bucket: "examplebucket",
         key: "/test.txt",
         uploadId: "upload-id-example",
-        hash: "123456",
-        parts: [
-            
-        ],
+        data: Data(),
         credentials: .testDefault,
         date: .testDefault
     )
@@ -25,59 +22,49 @@ final class CompleteMultipartUpload: XCTestCase, RequestTest {
     }
 
     func testThatCanonicalHeaderStringIsCorrect() throws {
-//        XCTAssertEqual("""
-//host:examplebucket.s3.amazonaws.com
-//x-amz-content-sha256:fc7f05463bfcba9544b41d16d63e11dc7d00de382024d3c53cd2e7d112aac5c6
-//x-amz-date:20130524T000000Z
-//""", request.canonicalHeaderString)
+        XCTAssertEqual("""
+content-type:application/xml
+host:examplebucket.s3.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20130524T000000Z
+""", request.canonicalHeaderString)
     }
 
     func testThatSignedHeaderStringIsCorrect() throws {
-        XCTAssertEqual("host;x-amz-content-sha256;x-amz-date", request.signedHeaderString)
+        XCTAssertEqual("content-type;host;x-amz-content-sha256;x-amz-date", request.signedHeaderString)
     }
 
     func testThatCanonicalRequestIsValid() throws {
-//        XCTAssertEqual("""
-//POST
-///test.txt
-//uploadId=upload-id-example
-//host:examplebucket.s3.amazonaws.com
-//x-amz-content-sha256:fc7f05463bfcba9544b41d16d63e11dc7d00de382024d3c53cd2e7d112aac5c6
-//x-amz-date:20130524T000000Z
-//
-//host;x-amz-content-sha256;x-amz-date
-//fc7f05463bfcba9544b41d16d63e11dc7d00de382024d3c53cd2e7d112aac5c6
-//""", request.canonicalRequest)
+        XCTAssertEqual("""
+POST
+/test.txt
+uploadId=upload-id-example
+content-type:application/xml
+host:examplebucket.s3.amazonaws.com
+x-amz-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-amz-date:20130524T000000Z
+
+content-type;host;x-amz-content-sha256;x-amz-date
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+""", request.canonicalRequest)
     }
 
     func testThatStringToSignIsValid() throws {
-//        XCTAssertEqual("""
-//AWS4-HMAC-SHA256
-//20130524T000000Z
-//20130524/us-east-1/s3/aws4_request
-//cb0efeb959ff76146f084dd91c95b684144cf98ded4a8cbb2c8fa8ff4b446ae3
-//""", request.stringToSign)
+        XCTAssertEqual("""
+AWS4-HMAC-SHA256
+20130524T000000Z
+20130524/us-east-1/s3/aws4_request
+717360f4a6b1ccfb3726f7c27759c7ff8588db662677cb54b52a41abeaa18830
+""", request.stringToSign)
     }
 
     func testThatSignatureIsValid() throws {
-//        XCTAssertEqual("0ffb25e4724b256784df98fe3b902ac82b33f50bed1d12c027e4a6f14d5522d0", request.signature)
+        XCTAssertEqual("f59f6ff646108d4259b2d17115dc240457f5c7c981f3f587fe5ff702a294d703", request.signature)
     }
 
     func testThatAuthorizationHeaderValueIsCorrect() throws {
-//        XCTAssertEqual("""
-//AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=host;x-amz-content-sha256;x-amz-date,Signature=0ffb25e4724b256784df98fe3b902ac82b33f50bed1d12c027e4a6f14d5522d0
-//""", request.authorizationHeaderValue)
-    }
-
-    func testThatPresignedURLIsCorrect() throws {
-//        XCTAssertEqual("", request.presignedUrl.absoluteString)
-    }
-
-    func testThatEscapingEncodesXMLStructure() throws {
-        let string: String = CompleteMultipartUploadRequestBodyBuilder()
-            .addPart(.init(number: 1, eTag: "2ecc3a5a7ff81cadb982c43408c391c1"))
-            .build(options: .escaped)
-
-        XCTAssertEqual(string, try R.xmlString("EscapedCompleteMultipartBody"))
+        XCTAssertEqual("""
+AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date,Signature=f59f6ff646108d4259b2d17115dc240457f5c7c981f3f587fe5ff702a294d703
+""", request.authorizationHeaderValue)
     }
 }

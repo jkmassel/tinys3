@@ -27,14 +27,16 @@ struct AWSRequest {
         query: [URLQueryItem] = [],
         range: Range<Int>? = nil,
         storageClass: StorageClass? = nil,
+        content: Data? = nil,
         contentSignature: String = sha256Hash(string: ""),
         credentials: AWSCredentials,
         date: Date = Date(),
+        endpoint: S3Endpoint = .default,
         extraHeaders: [String: String] = [:]
     ) {
         var components = URLComponents()
-        components.scheme = "https"
-        components.host = bucket + ".s3.amazonaws.com"
+        components.scheme = endpoint.scheme.rawValue
+        components.host = endpoint.hostname(forBucket: bucket, inRegion: credentials.region)
         components.path = path.hasPrefix("/") ? path : "/" + path
         components.queryItems = query
 
@@ -59,7 +61,6 @@ struct AWSRequest {
             urlRequest.setValue("bytes=\(lowerBound)-\(upperBound)", forHTTPHeaderField: "Range")
         }
 
-        self.request = urlRequest
         self.credentials = credentials
         self.date = date
 
@@ -68,6 +69,9 @@ struct AWSRequest {
         self.path = path
         self.scope = AWSScope(region: credentials.region, date: date)
         self.signer = AWSRequestSigner(credentials: credentials, requestDate: date)
+
+        urlRequest.httpBody = content
+        self.request = urlRequest
     }
 
     public var headers: HttpHeaders {
@@ -75,31 +79,22 @@ struct AWSRequest {
     }
 
     static func downloadRequest(
+        endpoint: S3Endpoint = .default,
         bucket: String,
         key: String,
         range: Range<Int>? = nil,
         credentials: AWSCredentials,
         date: Date = Date()
     ) -> AWSRequest {
-        AWSRequest(verb: .get, bucket: bucket, path: key, range: range, credentials: credentials, date: date)
-    }
-
-    @available(macOS 10.15.4, *)
-    static func uploadRequest(
-        bucket: String,
-        key: String,
-        path: URL,
-        credentials: AWSCredentials
-    ) throws -> URLRequest {
-        let hash = try sha256Hash(fileAt: path)
-
-        return AWSRequest(
-            verb: .put,
+        AWSRequest(
+            verb: .get,
             bucket: bucket,
             path: key,
-            contentSignature: hash,
-            credentials: credentials
-        ).urlRequest
+            range: range,
+            credentials: credentials,
+            date: date,
+            endpoint: endpoint
+        )
     }
 
     static func createMultipartUploadRequest(
@@ -117,12 +112,12 @@ struct AWSRequest {
         )
     }
 
-    @available(macOS 10.15.4, *)
     static func uploadPartRequest(
         bucket: String,
         key: String,
         part: MultipartUploadOperation.AWSPartData,
-        credentials: AWSCredentials
+        credentials: AWSCredentials,
+        endpoint: S3Endpoint = .default
     ) throws -> AWSRequest {
         AWSRequest(
             verb: .put,
@@ -132,18 +127,18 @@ struct AWSRequest {
                 URLQueryItem(name: "partNumber", value: String(part.number)),
                 URLQueryItem(name: "uploadId", value: part.uploadId)
             ],
+            content: part.data,
             contentSignature: part.sha256Hash,
-            credentials: credentials
+            credentials: credentials,
+            endpoint: endpoint
         )
     }
 
-    @available(macOS 10.15.4, *)
     static func completeMultipartUploadRequest(
         bucket: String,
         key: String,
         uploadId: String,
-        hash: String,
-        parts: [MultipartUploadOperation.AWSUploadedPart],
+        data: Data,
         credentials: AWSCredentials,
         date: Date = Date()
     ) -> AWSRequest {
@@ -152,9 +147,13 @@ struct AWSRequest {
             bucket: bucket,
             path: key,
             query: [URLQueryItem(name: "uploadId", value: uploadId)],
-            contentSignature: hash,
+            content: data,
+            contentSignature: sha256Hash(data: data),
             credentials: credentials,
-            date: date
+            date: date,
+            extraHeaders: [
+                "Content-Type": "application/xml"
+            ]
         )
     }
 }
@@ -233,7 +232,7 @@ extension AWSRequest {
         "AWS4-HMAC-SHA256 " + [
             "Credential=\(credentials.accessKeyId)/\(scope.description)",
             "SignedHeaders=\(signedHeaderString)",
-            "Signature=\(signer.sign(string: stringToSign))"
+            "Signature=\(signature)"
         ].joined(separator: ",")
     }
 

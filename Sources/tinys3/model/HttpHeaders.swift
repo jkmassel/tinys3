@@ -11,6 +11,9 @@ struct HttpHeaders {
         case authorization          = "Authorization"
         case host                   = "Host"
         case range                  = "Range"
+        case eTag                   = "Etag"
+        case contentLength          = "Content-Length"
+        case lastModified           = "Last-Modified"
 
         // Custom Headers
         case xAmzDate             = "x-amz-date"

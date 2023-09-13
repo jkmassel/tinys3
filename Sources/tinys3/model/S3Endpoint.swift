@@ -14,7 +14,7 @@ public struct S3Endpoint: Equatable {
     let needsRegion: Bool
 
     public static let `default` = S3Endpoint(
-        domain: "amazonaws.com",
+        domain: "s3.amazonaws.com",
         usesHttps: true,
         port: nil,
         usesBucketSubdomains: true,
