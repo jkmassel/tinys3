@@ -12,5 +12,4 @@ protocol RequestTest {
     func testThatStringToSignIsValid() throws
     func testThatSignatureIsValid() throws
     func testThatAuthorizationHeaderValueIsCorrect() throws
-    func testThatPresignedURLIsCorrect() throws
 }

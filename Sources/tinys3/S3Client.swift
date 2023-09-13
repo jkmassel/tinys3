@@ -30,20 +30,22 @@ public struct S3Client {
         #endif
     }
 
-    public func head(bucket: String, key: String) async throws -> S3HeadResponse {
+    public func head(bucket: String, key: String) async throws -> S3Object? {
         let url = AWSPresignedDownloadURL(
+            verb: .head,
             bucket: bucket,
             key: key,
             ttl: 60,
             credentials: self.credentials
         ).url
 
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "HEAD"
 
         let (data, response) = try await perform(request: request)
-        try AWSResponse(response: response, data: data).validate()
+        let awsResponse = try AWSResponse(response: response, data: data).validate()
 
-        return S3HeadResponse.from(key: key, response: response)
+        return S3HeadResponse.from(key: key, response: awsResponse).s3Object
     }
 
     public func list(bucket: String, prefix: String = "") async throws -> S3ListResponse {
@@ -75,44 +77,25 @@ public struct S3Client {
         return try await DownloadOperation(request: request).start(progressCallback: progressCallback)
     }
 
-    public func stream(
-        objectWithKey key: String,
-        inBucket bucket: String,
-        progressCallback: ProgressCallback? = nil,
-        headersCallback: StreamingDownloadOperation.HeadersCallback? = nil,
-        dataCallback: StreamingDownloadOperation.DataCallback? = nil
-    ) async throws -> URL {
-        let temporaryUrl = FileManager.default
-            .temporaryDirectory
-            .appendingPathComponent( UUID().uuidString)
-
-        let downloadOperation = StreamingDownloadOperation(
-            url: signedDownloadUrl(forKey: key, in: bucket, validFor: 60)
-        )
-
-        downloadOperation.headersCallback = headersCallback
-        downloadOperation.dataCallback = dataCallback
-        downloadOperation.progressCallback = progressCallback
-
-        try await downloadOperation.start(tempPath: temporaryUrl)
-
-        return temporaryUrl
-    }
-
-    @available(macOS 12.0, *)
     public func upload(
         objectAtPath path: URL,
         toBucket bucket: String,
         key: String,
         progressCallback: ProgressCallback? = nil
     ) async throws {
-        let request = try AWSRequest.uploadRequest(bucket: bucket, key: key, path: path, credentials: self.credentials)
-        try await UploadOperation(request: request, path: path).start(progressCallback: progressCallback)
+        let operation = try MultipartUploadOperation(
+            bucket: bucket,
+            key: key,
+            path: path,
+            credentials: self.credentials
+        )
+
+        try await operation.start(progressCallback)
     }
 
     func perform(request: AWSRequest) async throws -> AWSResponse {
         let (data, response) = try await perform(request: request.urlRequest)
-        return try AWSResponse(response: response, data: data)
+        return try AWSResponse(response: response, data: data).validate()
     }
 
     func perform(request: URLRequest) async throws -> (Data, HTTPURLResponse) {

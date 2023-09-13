@@ -85,6 +85,10 @@ extension Progress {
     }
     #endif
 
+    func estimateThroughput(fromStartDate date: Date) {
+        estimateThroughput(fromTimeElapsed: Date().timeIntervalSince(date))
+    }
+
     func estimateThroughput(fromTimeElapsed elapsedTime: TimeInterval) {
         guard Int64(elapsedTime) > 0 else {
             self.setUserInfoObject(0, forKey: .throughputKey)
@@ -105,6 +109,10 @@ extension Progress {
         let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
 
         self.setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
+    }
+
+    static func from(_ int: Int) -> Progress {
+        return Progress(totalUnitCount: Int64(int))
     }
 }
 
@@ -129,6 +137,14 @@ extension Digest {
 extension FileManager {
     var temporaryFile: URL {
         self.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    }
+
+    func fileSize(of url: URL) throws -> Int {
+        guard let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize else {
+            throw CocoaError(.fileReadUnknown)
+        }
+
+        return size
     }
 }
 

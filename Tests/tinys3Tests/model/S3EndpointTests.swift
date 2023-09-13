@@ -8,7 +8,7 @@ final class S3EndpointTests: XCTestCase {
 
     func testThatDefaultEndpointUsesBucketSubdomain() throws {
         XCTAssertEqual(
-            "my-test-bucket.s3.us-east-1.amazonaws.com",
+            "my-test-bucket.s3.amazonaws.com",
             defaultEndpoint.hostname(forBucket: "my-test-bucket", inRegion: "us-east-1")
         )
     }

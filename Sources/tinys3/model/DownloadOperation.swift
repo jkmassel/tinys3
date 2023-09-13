@@ -91,3 +91,15 @@ extension DownloadOperation: URLSessionDownloadDelegate {
         }
     }
 }
+
+extension URLSessionTask {
+    func downloadProgress(givenStartDate startDate: Date) -> Progress {
+        let progress = Progress(totalUnitCount: self.countOfBytesExpectedToReceive)
+        progress.completedUnitCount = self.countOfBytesReceived
+        progress.kind = .file
+        progress.setUserInfoObject(Progress.FileOperationKind.downloading.rawValue, forKey: .fileOperationKindKey)
+        progress.estimateThroughput(fromStartDate: startDate)
+
+        return progress
+    }
+}

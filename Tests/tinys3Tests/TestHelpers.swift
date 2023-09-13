@@ -29,6 +29,11 @@ struct R {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    static func xmlString(_ name: String) throws -> String {
+        return try String(contentsOf: url(forResourceName: name, withExtension: "xml"))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     static func xmlData(_ name: String) throws -> Data {
         return try Data(contentsOf: url(forResourceName: name, withExtension: "xml"))
     }

@@ -58,6 +58,14 @@ struct AWSResponse {
         throw error
     }
 
+    var headers: HttpHeaders {
+        HttpHeaders(from: self.response)
+    }
+
+    func value(forHTTPHeaderField key: HttpHeaders.HeaderType) -> String? {
+        headers[key]
+    }
+
     var wasSuccessful: Bool {
         return (200...299).contains(self.response.statusCode)
     }

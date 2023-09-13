@@ -10,6 +10,8 @@ struct AWSPresignedDownloadURL {
     let ttl: TimeInterval
     let endpoint: S3Endpoint
 
+    private let verb: HTTPMethod
+
     private let credentials: AWSCredentials
     private let date: Date
 
@@ -17,6 +19,7 @@ struct AWSPresignedDownloadURL {
     private let signer: AWSRequestSigner
 
     init(
+        verb: HTTPMethod = .get,
         bucket: String,
         key: String,
         ttl: TimeInterval = 30,
@@ -24,6 +27,7 @@ struct AWSPresignedDownloadURL {
         credentials: AWSCredentials,
         date: Date = Date()
     ) {
+        self.verb = verb
         self.bucket = bucket
         self.key = key
         self.ttl = ttl
@@ -36,7 +40,7 @@ struct AWSPresignedDownloadURL {
     }
 
     var hostname: String {
-        bucket + ".s3." + endpoint.domain
+        endpoint.hostname(forBucket: bucket, inRegion: credentials.region)
     }
 
     var canonicalUri: String {
@@ -67,7 +71,7 @@ struct AWSPresignedDownloadURL {
 
     var canonicalRequest: String {
         [
-            "GET",
+            self.verb.rawValue,
             canonicalUri,
             canonicalQueryString,
             canonicalHeaderString,
