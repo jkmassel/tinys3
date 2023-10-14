@@ -4,12 +4,14 @@ import Foundation
 import FoundationNetworking
 #endif
 
-class MultipartUploadOperation: NSObject {
+class MultipartUploadOperation: NSObject, RequestPerformer {
     let bucket: String
     let key: String
     let path: URL
     let credentials: AWSCredentials
     let endpoint: S3Endpoint
+
+    let urlSession: URLSession = .shared
 
     struct AWSPartData {
         let uploadId: String
@@ -129,14 +131,6 @@ class MultipartUploadOperation: NSObject {
 
             return AWSUploadedPart(number: part.number, eTag: eTag)
         }
-    }
-
-    func perform(_ request: AWSRequest) async throws -> AWSResponse {
-        var urlRequest = request.urlRequest
-        urlRequest.timeoutInterval = 3600
-
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
-        return try AWSResponse(response: response as? HTTPURLResponse, data: data)
     }
 
     @available(macOS 12.0, *)
