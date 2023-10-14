@@ -71,8 +71,7 @@ public struct S3Client {
     public func download(
         objectWithKey key: String,
         inBucket bucket: String,
-        progressCallback: ProgressCallback? = nil,
-        endpoint: S3Endpoint = .default
+        progressCallback: ProgressCallback? = nil
     ) async throws -> URL {
         let request = AWSRequest.downloadRequest(
             bucket: bucket,
