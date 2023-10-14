@@ -31,21 +31,14 @@ public struct S3Client: RequestPerformer {
     }
 
     public func head(bucket: String, key: String) async throws -> S3Object? {
-        let url = AWSPresignedDownloadURL(
-            verb: .head,
+        let request = AWSRequest.headRequest(
             bucket: bucket,
             key: key,
-            ttl: 60,
             credentials: self.credentials
-        ).url
+        )
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "HEAD"
-
-        let (data, response) = try await perform(request: request)
-        let awsResponse = try AWSResponse(response: response, data: data).validate()
-
-        return S3HeadResponse.from(key: key, response: awsResponse).s3Object
+        let response = try await perform(request).validate()
+        return S3HeadResponse.from(key: key, response: response).s3Object
     }
 
     public func list(bucket: String, prefix: String = "") async throws -> S3ListResponse {
@@ -68,19 +61,38 @@ public struct S3Client: RequestPerformer {
         ).url
     }
 
+    /// Downloads a file from S3
+    ///
+    /// The file is downloaded in pieces, so resume is automatically available for large files.
+    ///
+    /// - Parameters:
+    ///     - objectWithKey: The object stored at the given key.
+    ///     - inBucket: The bucket containing the object for download
+    ///     - progressCallback: Used to monitor the progress of the download operation
+    ///     - chunkSize: The chunk size to use – this controls both the number of files that
+    ///     will be created on-disk for a given download – a larger file will have many chunks at
+    ///     the default sizes. This also controls the amount of memory that'll be
+    ///     used – chunks are buffered in RAM, so larger chunks sizes will cause higher memory use.
+    ///     - workingDirectory: The location on-disk for chunks to be stored after they're 
+    ///     downloaded but before they're re-combined. Defaults to the system temp directory.
+    ///
+    /// - Returns: A `URL` pointing to the downloaded file on-disk
+
     public func download(
         objectWithKey key: String,
         inBucket bucket: String,
-        progressCallback: ProgressCallback? = nil
+        progressCallback: ProgressCallback? = nil,
+        chunkSize: MultipartDownloadFile.ChunkSize = .default,
+        workingDirectory: URL = FileManager.default.temporaryDirectory
     ) async throws -> URL {
-        let request = AWSRequest.downloadRequest(
+        let destination = FileManager.default.temporaryFile
+        try await MultipartDownloadOperation(
             bucket: bucket,
             key: key,
             credentials: self.credentials,
-            endpoint: endpoint
-        ).urlRequest
-
-        return try await DownloadOperation(request: request).start(progressCallback: progressCallback)
+            endpoint: self.endpoint
+        ).start(downloadingTo: destination, progress: progressCallback)
+        return destination
     }
 
     public func upload(
