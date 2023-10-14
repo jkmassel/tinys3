@@ -79,11 +79,11 @@ struct AWSRequest {
     }
 
     static func downloadRequest(
-        endpoint: S3Endpoint = .default,
         bucket: String,
         key: String,
         range: Range<Int>? = nil,
         credentials: AWSCredentials,
+        endpoint: S3Endpoint = .default,
         date: Date = Date()
     ) -> AWSRequest {
         AWSRequest(
