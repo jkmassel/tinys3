@@ -39,7 +39,7 @@ struct CLI: AsyncParsableCommand {
     }
 
     func download() async throws {
-        debugPrint("Copying \(source) to \(destination)")
+        print("Copying \(source) to \(destination)")
 
         guard
             let sourceURL = URL(string: self.source),
@@ -48,11 +48,9 @@ struct CLI: AsyncParsableCommand {
             abort()
         }
 
-        let client = try S3Client(credentials: .fromUserConfiguration())
+        let client = try S3Client(credentials: .fromUserConfiguration(), endpoint: .accelerated)
 
         let destination = try resolveDestination()
-
-        debugPrint(destination)
 
         let tempDestination = try await client.download(
             objectWithKey: sourceURL.relativePath,
@@ -68,7 +66,7 @@ struct CLI: AsyncParsableCommand {
     }
 
     func upload() async throws {
-        debugPrint("Copying \(source) to \(destination)")
+        print("Copying \(source) to \(destination)")
 
         guard
             let destinationURL = URL(string: self.destination),
@@ -146,7 +144,7 @@ struct CLI: AsyncParsableCommand {
     }
 
     func updateProgress(_ progress: Progress) {
-        debugPrint(format(percentage: progress.fractionCompleted))
+        print(format(percentage: progress.fractionCompleted))
     }
 
     func resolveDestination() throws -> URL {

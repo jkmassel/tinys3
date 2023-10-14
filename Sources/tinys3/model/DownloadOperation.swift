@@ -6,16 +6,16 @@ import FoundationNetworking
 
 public typealias ProgressCallback = (Progress) -> Void
 
-class DownloadOperation: NSObject {
+class DownloadOperation: NSObject, RequestPerformer {
 
     private let request: URLRequest
     private let urlSessionConfiguration: URLSessionConfiguration
-    private lazy var session: URLSession = URLSession(
+    lazy var urlSession: URLSession = URLSession(
         configuration: self.urlSessionConfiguration,
         delegate: self,
         delegateQueue: nil
     )
-    private lazy var task: URLSessionDownloadTask = session.downloadTask(with: self.request)
+    private lazy var task: URLSessionDownloadTask = urlSession.downloadTask(with: self.request)
 
     private var downloadContinuation: CheckedContinuation<URL, Error>!
     private var progressCallback: ProgressCallback?

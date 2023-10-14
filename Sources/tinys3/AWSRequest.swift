@@ -78,6 +78,19 @@ struct AWSRequest {
         HttpHeaders().adding(request.allHTTPHeaderFields!)
     }
 
+    static func headRequest(
+        bucket: String,
+        key: String,
+        credentials: AWSCredentials
+    ) -> AWSRequest {
+        AWSRequest(
+            verb: .head,
+            bucket: bucket,
+            path: key,
+            credentials: credentials
+        )
+    }
+
     static func downloadRequest(
         bucket: String,
         key: String,
